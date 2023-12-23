@@ -1,9 +1,12 @@
 package convertation
 
-import "github.com/alserov/rently/car/internal/service/models"
+import (
+	"github.com/alserov/rently/car/internal/service/models"
+	"github.com/alserov/rently/proto/gen/car"
+)
 
 type ServerConverter interface {
-	CreateOrderReqToService() models.CreateRentReq
+	CreateRentReqToService(req *car.CreateRentReq) models.CreateRentReq
 }
 
 func NewServerConverter() ServerConverter {
@@ -13,7 +16,7 @@ func NewServerConverter() ServerConverter {
 type serverConverter struct {
 }
 
-func (s serverConverter) CreateOrderReqToService() models.CreateRentReq {
+func (s serverConverter) CreateRentReqToService(req *car.CreateRentReq) models.CreateRentReq {
 	//TODO implement me
 	panic("implement me")
 }

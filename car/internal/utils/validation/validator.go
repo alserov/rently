@@ -1,9 +1,12 @@
 package validation
 
 import (
+	"fmt"
+	"github.com/alserov/rently/proto/gen/car"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"regexp"
+	"time"
 )
 
 type Validator interface {
@@ -11,7 +14,7 @@ type Validator interface {
 	ValidateCardCredentials(cardCredentials string) error
 	ValidatePassportNumber(passportNumber string) error
 
-	ValidateCreateRentReq() error
+	ValidateCreateRentReq(req *car.CreateRentReq) error
 }
 
 func NewValidator() Validator {
@@ -26,9 +29,28 @@ type validator struct {
 	card  *regexp.Regexp
 }
 
-func (s *validator) ValidateCreateRentReq() error {
-	//TODO implement me
-	panic("implement me")
+const (
+	ERR_EMPTY = "can not be empty"
+)
+
+func (s *validator) ValidateCreateRentReq(req *car.CreateRentReq) error {
+	if req.GetRentEnd() == nil || req.GetRentEnd().AsTime().Unix() < time.Now().Unix() {
+		return status.Error(codes.InvalidArgument, "invalid rent end timestamp")
+	}
+
+	if req.GetRentStart() == nil || req.GetRentEnd().AsTime().Unix() < time.Now().Unix() {
+		return status.Error(codes.InvalidArgument, "invalid rent end timestamp")
+	}
+
+	if req.GetRentEnd().AsTime().Unix() < req.GetRentStart().AsTime().Unix() {
+		return status.Error(codes.InvalidArgument, "rent end can not be less than rent start")
+	}
+
+	if req.GetCardCredentials() == "" {
+		return status.Error(codes.InvalidArgument, fmt.Sprintf("card number %s", ERR_EMPTY))
+	}
+
+	return nil
 }
 
 const (
