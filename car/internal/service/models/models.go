@@ -14,6 +14,14 @@ type CreateRentReq struct {
 	RentEnd   *time.Time
 }
 
+type CancelRentReq struct {
+	RentUUID string
+}
+
+type CheckRentReq struct {
+	RentUUID string
+}
+
 type Rent struct {
 	CarUUID   string
 	RentPrice float32

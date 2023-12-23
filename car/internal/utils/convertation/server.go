@@ -7,6 +7,8 @@ import (
 
 type ServerConverter interface {
 	CreateRentReqToService(req *car.CreateRentReq) models.CreateRentReq
+
+	CheckRentToPb(res models.Rent) *car.CheckRentRes
 }
 
 func NewServerConverter() ServerConverter {
@@ -14,6 +16,11 @@ func NewServerConverter() ServerConverter {
 }
 
 type serverConverter struct {
+}
+
+func (s serverConverter) CheckRentToPb(res models.Rent) *car.CheckRentRes {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (s serverConverter) CreateRentReqToService(req *car.CreateRentReq) models.CreateRentReq {

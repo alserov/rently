@@ -32,18 +32,6 @@ func (s *server) CreateRent(ctx context.Context, req *car.CreateRentReq) (*car.C
 		return nil, err
 	}
 
-	if err := s.validation.ValidatePhoneNumber(req.PhoneNumber); err != nil {
-		return nil, err
-	}
-
-	if err := s.validation.ValidateCardCredentials(req.CardCredentials); err != nil {
-		return nil, err
-	}
-
-	if err := s.validation.ValidatePassportNumber(req.PassportNumber); err != nil {
-		return nil, err
-	}
-
 	rentUUID, err := s.service.CreateRent(ctx, s.convert.CreateRentReqToService(req))
 	if err != nil {
 		return nil, err
@@ -53,18 +41,34 @@ func (s *server) CreateRent(ctx context.Context, req *car.CreateRentReq) (*car.C
 }
 
 func (s *server) CancelRent(ctx context.Context, req *car.CancelRentReq) (*emptypb.Empty, error) {
-	//TODO implement me
-	panic("implement me")
+	if err := s.validation.ValidateCancelRentReq(req); err != nil {
+		return nil, err
+	}
+
+	if err := s.service.CancelRent(ctx, req.RentUUID); err != nil {
+		return nil, err
+	}
+
+	return &emptypb.Empty{}, nil
 }
 
 func (s *server) CheckRent(ctx context.Context, req *car.CheckRentReq) (*car.CheckRentRes, error) {
-	//TODO implement me
-	panic("implement me")
+	if err := s.validation.ValidateCheckRentReq(req); err != nil {
+		return nil, err
+	}
+
+	rent, err := s.service.CheckRent(ctx, req.RentUUID)
+	if err != nil {
+
+	}
+
+	return s.convert.CheckRentToPb(rent), nil
 }
 
 func (s *server) GetAvailableCars(ctx context.Context, req *car.GetAvailableCarsReq) (*car.GetCarsRes, error) {
-	//TODO implement me
-	panic("implement me")
+	if err := s.validation.; err != nil {
+		return nil, err
+	}
 }
 
 func (s *server) GetCarsByParams(ctx context.Context, req *car.GetCarsByParamsReq) (*car.GetCarsRes, error) {

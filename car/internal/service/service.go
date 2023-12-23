@@ -3,9 +3,11 @@ package service
 import (
 	"context"
 	"github.com/alserov/rently/car/internal/db"
+	"github.com/alserov/rently/car/internal/metrics"
 	"github.com/alserov/rently/car/internal/service/models"
 	"github.com/alserov/rently/car/internal/utils/convertation"
 	"github.com/google/uuid"
+	"log/slog"
 )
 
 type Service interface {
@@ -14,24 +16,37 @@ type Service interface {
 	CheckRent(ctx context.Context, rentUUID string) (res models.Rent, err error)
 }
 
-func NewService(repo db.Repository) Service {
+func NewService(repo db.Repository, metrics metrics.Metrics, log *slog.Logger) Service {
 	return &service{
-		repo: repo,
-
+		log:     log,
+		repo:    repo,
+		metrics: metrics,
 		convert: convertation.NewServiceConverter(),
 	}
 }
 
 type service struct {
+	log *slog.Logger
+
 	repo db.Repository
+
+	metrics metrics.Metrics
 
 	convert convertation.ServiceConverter
 }
 
 func (s *service) CancelRent(ctx context.Context, rentUUID string) (err error) {
-	if err := s.repo.CancelRent(ctx, rentUUID); err != nil {
+	rentInfo, err = s.repo.CancelRent(ctx, rentUUID)
+	if err != nil {
 		return err
 	}
+
+	// TODO: money refund
+
+	if err = s.metrics.DecreaseActiveRentsAmount(); err != nil {
+		s.log.Error("failed to decrease active rents amount (metrics): ", err.Error())
+	}
+
 	return nil
 }
 
@@ -49,6 +64,10 @@ func (s *service) CreateRent(ctx context.Context, req models.CreateRentReq) (ren
 
 	if err = s.repo.CreateRent(ctx, s.convert.CreateRentToRepo(req)); err != nil {
 		return "", err
+	}
+
+	if err = s.metrics.IncreaseActiveRentsAmount(); err != nil {
+		s.log.Error("failed to increase active rents amount (metrics): ", err.Error())
 	}
 
 	return req.RentUUID, nil

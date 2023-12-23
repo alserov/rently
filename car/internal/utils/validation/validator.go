@@ -10,11 +10,9 @@ import (
 )
 
 type Validator interface {
-	ValidatePhoneNumber(phoneNumber string) error
-	ValidateCardCredentials(cardCredentials string) error
-	ValidatePassportNumber(passportNumber string) error
-
 	ValidateCreateRentReq(req *car.CreateRentReq) error
+	ValidateCancelRentReq(req *car.CancelRentReq) error
+	ValidateCheckRentReq(req *car.CheckRentReq) error
 }
 
 func NewValidator() Validator {
@@ -24,16 +22,34 @@ func NewValidator() Validator {
 	}
 }
 
+const (
+	ERR_EMPTY                = "can not be empty"
+	ERR_INVALID_PHONE_NUMBER = "invalid phone number"
+	ERR_INVALID_CARD_NUMBER  = "invalid card number"
+)
+
 type validator struct {
 	phone *regexp.Regexp
 	card  *regexp.Regexp
 }
 
-const (
-	ERR_EMPTY = "can not be empty"
-)
+func (v *validator) ValidateCancelRentReq(req *car.CancelRentReq) error {
+	if req.GetRentUUID() == "" {
+		return status.Error(codes.InvalidArgument, fmt.Sprintf("rent uuid %s", ERR_EMPTY))
+	}
 
-func (s *validator) ValidateCreateRentReq(req *car.CreateRentReq) error {
+	return nil
+}
+
+func (v *validator) ValidateCheckRentReq(req *car.CheckRentReq) error {
+	if req.GetRentUUID() == "" {
+		return status.Error(codes.InvalidArgument, fmt.Sprintf("rent uuid %s", ERR_EMPTY))
+	}
+
+	return nil
+}
+
+func (v *validator) ValidateCreateRentReq(req *car.CreateRentReq) error {
 	if req.GetRentEnd() == nil || req.GetRentEnd().AsTime().Unix() < time.Now().Unix() {
 		return status.Error(codes.InvalidArgument, "invalid rent end timestamp")
 	}
@@ -50,16 +66,23 @@ func (s *validator) ValidateCreateRentReq(req *car.CreateRentReq) error {
 		return status.Error(codes.InvalidArgument, fmt.Sprintf("card number %s", ERR_EMPTY))
 	}
 
+	if req.GetCarUUID() == "" {
+		return status.Error(codes.InvalidArgument, fmt.Sprintf("car uuid %s", ERR_EMPTY))
+	}
+
+	if err := v.validatePhoneNumber(req.GetPhoneNumber()); err != nil {
+		return status.Error(codes.InvalidArgument, ERR_INVALID_PHONE_NUMBER)
+	}
+
+	if err := v.validateCardCredentials(req.CardCredentials); err != nil {
+		return status.Error(codes.InvalidArgument, ERR_INVALID_CARD_NUMBER)
+	}
+
 	return nil
 }
 
-const (
-	ERR_INVALID_PHONE_NUMBER = "invalid phone number"
-	ERR_INVALID_CARD_NUMBER  = "invalid card number"
-)
-
-func (s *validator) ValidatePhoneNumber(phoneNumber string) error {
-	valid := s.phone.MatchString(phoneNumber)
+func (v *validator) validatePhoneNumber(phoneNumber string) error {
+	valid := v.phone.MatchString(phoneNumber)
 	if !valid {
 		return status.Error(codes.InvalidArgument, ERR_INVALID_PHONE_NUMBER)
 	}
@@ -67,8 +90,8 @@ func (s *validator) ValidatePhoneNumber(phoneNumber string) error {
 	return nil
 }
 
-func (s *validator) ValidateCardCredentials(cardCredentials string) error {
-	valid := s.card.MatchString(cardCredentials)
+func (v *validator) validateCardCredentials(cardCredentials string) error {
+	valid := v.card.MatchString(cardCredentials)
 	if !valid {
 		return status.Error(codes.InvalidArgument, ERR_INVALID_CARD_NUMBER)
 	}
@@ -76,7 +99,7 @@ func (s *validator) ValidateCardCredentials(cardCredentials string) error {
 	return nil
 }
 
-func (s *validator) ValidatePassportNumber(passportNumber string) error {
+func (v *validator) validatePassportNumber(passportNumber string) error {
 	//TODO implement me
 	panic("implement me")
 }

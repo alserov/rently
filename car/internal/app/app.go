@@ -5,6 +5,7 @@ import (
 	"github.com/alserov/rently/car/internal/config"
 	"github.com/alserov/rently/car/internal/db/postgres"
 	"github.com/alserov/rently/car/internal/log"
+	"github.com/alserov/rently/car/internal/metrics"
 	"github.com/alserov/rently/car/internal/server"
 	"github.com/alserov/rently/car/internal/service"
 	"google.golang.org/grpc"
@@ -45,7 +46,11 @@ func (a *App) MustStart() {
 
 	db := postgres.MustConnect(a.dsn)
 	repo := postgres.NewRepo(db)
-	serv := service.NewService(repo)
+
+	metr := metrics.NewMetrics()
+
+	serv := service.NewService(repo, metr, a.log)
+
 	server.RegisterGRPCServer(a.gRPCServer, serv)
 
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", a.port))
