@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/alserov/rently/proto/gen/car";
+
+service Cars {
+  rpc CreateRent(CreateRentReq) returns (CreateRentRes);
+  rpc CancelRent(CancelRentReq) returns (google.protobuf.Empty);
+  rpc CheckRent(CheckRentReq) returns (CheckRentRes);
+
+  rpc GetAvailableCars(GetAvailableCarsReq) returns (GetCarsRes);
+  rpc GetCarsByParams(GetCarsByParamsReq) returns (GetCarsRes);
+
+  rpc GetCarByUUID(GetCarByUUIDReq) returns (Car);
+}
+
+message CreateRentReq {
+  string CarUUID = 1;
+  string PhoneNumber = 2;
+  string PassportNumber = 3;
+  string CardCredentials = 4;
+
+  google.protobuf.Timestamp RentStart = 5;
+  google.protobuf.Timestamp RentEnd = 6;
+}
+
+message CreateRentRes {
+  string RentUUID = 1;
+}
+
+
+message CancelRentReq {
+  string RentUUID = 1;
+}
+
+
+message CheckRentReq {
+  string RentUUID = 2;
+}
+
+message CheckRentRes {
+  string CarUUID = 1;
+  float RentPrice = 2;
+
+  google.protobuf.Timestamp RentStart = 3;
+  google.protobuf.Timestamp RentEnd = 4;
+}
+
+message Car {
+  string Brand = 1;
+  string Type = 2;
+  int32 MaxSpeed = 3;
+  int32 Seats = 4;
+  string Category = 5;
+  float PricePerDay = 6;
+  string UUID = 7;
+}
+
+message GetAvailableCarsReq {
+  google.protobuf.Timestamp From = 1;
+  google.protobuf.Timestamp To = 2;
+}
+
+message GetCarsRes {
+  repeated Car Cars = 1;
+}
+
+message GetCarsByParamsReq {
+  string Brand = 1;
+  string Type = 2;
+  int32 MaxSpeed = 3;
+  int32 Seats = 4;
+  string Category = 5;
+  float PricePerDay = 6;
+}
+
+message GetCarByUUIDReq {
+  string UUID = 1;
+}
