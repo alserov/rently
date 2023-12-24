@@ -66,17 +66,40 @@ func (s *server) CheckRent(ctx context.Context, req *car.CheckRentReq) (*car.Che
 }
 
 func (s *server) GetAvailableCars(ctx context.Context, req *car.GetAvailableCarsReq) (*car.GetCarsRes, error) {
-	if err := s.validation.; err != nil {
+	if err := s.validation.ValidateGetAvailableCarsReq(req); err != nil {
 		return nil, err
 	}
+
+	cars, err := s.service.GetAvailableCars(ctx, s.convert.GetAvailableCarsReqToService(req))
+	if err != nil {
+		return nil, err
+	}
+
+	return s.convert.CarsToPb(cars), nil
 }
 
 func (s *server) GetCarsByParams(ctx context.Context, req *car.GetCarsByParamsReq) (*car.GetCarsRes, error) {
-	//TODO implement me
-	panic("implement me")
+	if err := s.validation.ValidateGetCarsByParamsReq(req); err != nil {
+		return nil, err
+	}
+
+	cars, err := s.service.GetCarsByParams(ctx, s.convert.GetCarsByParamsReqToService(req))
+	if err != nil {
+		return nil, err
+	}
+
+	return s.convert.CarsToPb(cars), nil
 }
 
 func (s *server) GetCarByUUID(ctx context.Context, req *car.GetCarByUUIDReq) (*car.Car, error) {
-	//TODO implement me
-	panic("implement me")
+	if err := s.validation.ValidateGetCarByUUID(req); err != nil {
+		return nil, err
+	}
+
+	car, err := s.service.GetCarByUUID(ctx, req.UUID)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.convert.CarToPb(car), nil
 }

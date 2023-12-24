@@ -9,6 +9,18 @@ import (
 type Config struct {
 	Port int
 	Env  string
+
+	Broker Broker
+}
+
+type Broker struct {
+	Addr    string `yaml:"addr"`
+	Metrics struct {
+		Topics struct {
+			DecreaseActiveRentsAmount string `yaml:"decreaseActiveRentsAmount"`
+			IncreaseActiveRentsAmount string `yaml:"increaseActiveRentsAmount"`
+		} `yaml:"topics"`
+	} `yaml:"metrics"`
 }
 
 func MustLoad() *Config {
@@ -27,7 +39,7 @@ func MustLoad() *Config {
 	}
 
 	var cfg Config
-	if err := yaml.Unmarshal(configFile, &cfg); err != nil {
+	if err = yaml.Unmarshal(configFile, &cfg); err != nil {
 		panic("failed to unmarshal config file")
 	}
 

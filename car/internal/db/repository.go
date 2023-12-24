@@ -6,6 +6,17 @@ import (
 )
 
 type Repository interface {
+	RentRepository
+	CarRepository
+}
+
+type CarRepository interface {
+	GetCarsByParams(ctx context.Context, params models.CarParams) ([]models.Car, error)
+	GetCarByUUID(ctx context.Context, uuid string) (models.Car, error)
+	GetAvailableCars(ctx context.Context, period models.Period) ([]models.Car, error)
+}
+
+type RentRepository interface {
 	CreateRent(ctx context.Context, req models.CreateRentReq) (err error)
 	CancelRent(ctx context.Context, rentUUID string) (rentInfo models.CancelRentInfo, err error)
 	CheckRent(ctx context.Context, rentUUID string) (rent models.Rent, err error)

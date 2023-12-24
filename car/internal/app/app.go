@@ -2,12 +2,15 @@ package app
 
 import (
 	"fmt"
+
+	brckr "github.com/alserov/rently/car/internal/broker"
 	"github.com/alserov/rently/car/internal/config"
 	"github.com/alserov/rently/car/internal/db/postgres"
 	"github.com/alserov/rently/car/internal/log"
-	"github.com/alserov/rently/car/internal/metrics"
+	mtrcs "github.com/alserov/rently/car/internal/metrics"
 	"github.com/alserov/rently/car/internal/server"
 	"github.com/alserov/rently/car/internal/service"
+
 	"google.golang.org/grpc"
 	"log/slog"
 	"net"
@@ -22,12 +25,27 @@ type App struct {
 
 	dsn string
 
+	broker broker
+
 	gRPCServer *grpc.Server
+}
+
+type broker struct {
+	addr    string
+	metrics mtrcs.MetricTopics
 }
 
 func NewApp(cfg *config.Config) *App {
 	return &App{
 		port: cfg.Port,
+
+		broker: broker{
+			addr: cfg.Broker.Addr,
+			metrics: mtrcs.MetricTopics{
+				DecreaseActiveRentsAmount: cfg.Broker.Metrics.Topics.DecreaseActiveRentsAmount,
+				IncreaseActiveRentsAmount: cfg.Broker.Metrics.Topics.IncreaseActiveRentsAmount,
+			},
+		},
 
 		log:        log.MustSetup(cfg.Env),
 		gRPCServer: grpc.NewServer(),
@@ -47,7 +65,8 @@ func (a *App) MustStart() {
 	db := postgres.MustConnect(a.dsn)
 	repo := postgres.NewRepo(db)
 
-	metr := metrics.NewMetrics()
+	producer := brckr.NewProducer(a.broker.addr)
+	metr := mtrcs.NewMetrics(producer, a.broker.metrics, a.log)
 
 	serv := service.NewService(repo, metr, a.log)
 
