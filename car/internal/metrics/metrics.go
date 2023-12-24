@@ -8,11 +8,14 @@ import (
 type Metrics interface {
 	IncreaseActiveRentsAmount()
 	DecreaseActiveRentsAmount()
+
+	NotifyBrandDemand(brand string)
 }
 
 type MetricTopics struct {
 	DecreaseActiveRentsAmount string
 	IncreaseActiveRentsAmount string
+	NotifyBrandDemand         string
 }
 
 func NewMetrics(producer sarama.SyncProducer, topics MetricTopics, log *slog.Logger) Metrics {
@@ -28,6 +31,16 @@ type metrics struct {
 	p sarama.SyncProducer
 
 	topics MetricTopics
+}
+
+func (m *metrics) NotifyBrandDemand(brand string) {
+	_, _, err := m.p.SendMessage(&sarama.ProducerMessage{
+		Topic: m.topics.NotifyBrandDemand,
+		Value: sarama.StringEncoder(brand),
+	})
+	if err != nil {
+		m.log.Error("failed to send message: ", err.Error())
+	}
 }
 
 func (m *metrics) DecreaseActiveRentsAmount() {

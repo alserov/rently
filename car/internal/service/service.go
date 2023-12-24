@@ -61,6 +61,8 @@ func (s *service) GetCarsByParams(ctx context.Context, params models.CarParams) 
 		return nil, err
 	}
 
+	s.metrics.NotifyBrandDemand(params.Brand)
+
 	return s.convert.CarsToService(cars), nil
 }
 
