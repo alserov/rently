@@ -1,6 +1,8 @@
-package workers
+package metrics
 
-import "context"
+import (
+	"context"
+)
 
 type Worker interface {
 	MustStart(ctx context.Context)
