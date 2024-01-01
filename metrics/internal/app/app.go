@@ -48,7 +48,7 @@ func (a *App) MustStart() {
 
 	a.log.Info("starting app")
 
-	carWorker, carMetrics := car.NewCarWorker(a.broker.Addr, &car.GaugeTopics{
+	carWorker, carMetrics := car.NewWorker(a.broker.Addr, &car.GaugeTopics{
 		IncreaseActiveRentsAmount: a.broker.Topics.IncreaseActiveRentsAmount,
 		DecreaseActiveRentsAmount: a.broker.Topics.DecreaseActiveRentsAmount,
 	})

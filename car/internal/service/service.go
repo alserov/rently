@@ -6,6 +6,7 @@ import (
 	"github.com/alserov/rently/car/internal/metrics"
 	"github.com/alserov/rently/car/internal/service/models"
 	"github.com/alserov/rently/car/internal/utils/convertation"
+	"github.com/alserov/rently/car/internal/utils/payment"
 	"github.com/google/uuid"
 	"log/slog"
 )
@@ -33,6 +34,7 @@ func NewService(repo db.Repository, metrics metrics.Metrics, log *slog.Logger) S
 		repo:    repo,
 		metrics: metrics,
 		convert: convertation.NewServiceConverter(),
+		payment: payment.NewPayer("API KEY"),
 	}
 }
 
@@ -44,6 +46,8 @@ type service struct {
 	metrics metrics.Metrics
 
 	convert convertation.ServiceConverter
+
+	payment payment.Payer
 }
 
 func (s *service) GetCarByUUID(ctx context.Context, uuid string) (models.Car, error) {
@@ -99,7 +103,17 @@ func (s *service) CheckRent(ctx context.Context, rentUUID string) (res models.Re
 func (s *service) CreateRent(ctx context.Context, req models.CreateRentReq) (rentUUID string, err error) {
 	req.RentUUID = uuid.New().String()
 
+	if err = s.repo.CheckIfCarAvailable(ctx, s.convert.CheckIfCarAvailableToRepo(req)); err != nil {
+		return "", err
+	}
+
+	totalPrice := s.payment.CountPrice(&req)
+
 	if err = s.repo.CreateRent(ctx, s.convert.CreateRentToRepo(req)); err != nil {
+		return "", err
+	}
+
+	if err = s.payment.Debit(req.CardCredentials, totalPrice); err != nil {
 		return "", err
 	}
 

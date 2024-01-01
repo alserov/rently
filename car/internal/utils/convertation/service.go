@@ -14,6 +14,7 @@ type ToRepo interface {
 	ParamsToRepo(req models.CarParams) repo.CarParams
 	PeriodToRepo(req models.Period) repo.Period
 	CreateRentToRepo(req models.CreateRentReq) repo.CreateRentReq
+	CheckIfCarAvailableToRepo(req models.CreateRentReq) repo.CheckIfCarAvailable
 }
 
 type RepoToService interface {
@@ -27,6 +28,14 @@ func NewServiceConverter() ServiceConverter {
 }
 
 type serviceConverter struct {
+}
+
+func (s serviceConverter) CheckIfCarAvailableToRepo(req models.CreateRentReq) repo.CheckIfCarAvailable {
+	return repo.CheckIfCarAvailable{
+		CarUUID:   req.CarUUID,
+		RentStart: req.RentStart,
+		RentEnd:   req.RentEnd,
+	}
 }
 
 func (s serviceConverter) ParamsToRepo(req models.CarParams) repo.CarParams {

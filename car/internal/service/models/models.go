@@ -22,6 +22,15 @@ type CreateRentReq struct {
 	RentEnd   *time.Time
 }
 
+func (c *CreateRentReq) Period() time.Duration {
+	period := c.RentEnd.Sub(*c.RentStart)
+	return period
+}
+
+func (c *CreateRentReq) Price() float32 {
+	panic("")
+}
+
 type CancelRentReq struct {
 	RentUUID string
 }

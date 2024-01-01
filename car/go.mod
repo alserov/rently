@@ -9,6 +9,7 @@ require (
 	github.com/google/uuid v1.5.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/stretchr/testify v1.8.4
+	github.com/stripe/stripe-go v70.15.0+incompatible
 	google.golang.org/grpc v1.60.1
 	google.golang.org/protobuf v1.32.0
 	gopkg.in/yaml.v3 v3.0.1

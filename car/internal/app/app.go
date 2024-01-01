@@ -2,8 +2,8 @@ package app
 
 import (
 	"fmt"
+	broker2 "github.com/alserov/rently/car/internal/utils/broker"
 
-	brckr "github.com/alserov/rently/car/internal/broker"
 	"github.com/alserov/rently/car/internal/config"
 	"github.com/alserov/rently/car/internal/db/postgres"
 	"github.com/alserov/rently/car/internal/log"
@@ -25,23 +25,18 @@ type App struct {
 
 	dsn string
 
-	broker broker
+	broker broker2.Broker
 
 	gRPCServer *grpc.Server
-}
-
-type broker struct {
-	addr    string
-	metrics mtrcs.MetricTopics
 }
 
 func NewApp(cfg *config.Config) *App {
 	return &App{
 		port: cfg.Port,
 
-		broker: broker{
-			addr: cfg.Broker.Addr,
-			metrics: mtrcs.MetricTopics{
+		broker: broker2.Broker{
+			Addr: cfg.Broker.Addr,
+			Metrics: mtrcs.MetricTopics{
 				DecreaseActiveRentsAmount: cfg.Broker.Metrics.Topics.DecreaseActiveRentsAmount,
 				IncreaseActiveRentsAmount: cfg.Broker.Metrics.Topics.IncreaseActiveRentsAmount,
 			},
@@ -65,8 +60,8 @@ func (a *App) MustStart() {
 	db := postgres.MustConnect(a.dsn)
 	repo := postgres.NewRepo(db)
 
-	producer := brckr.NewProducer(a.broker.addr)
-	metr := mtrcs.NewMetrics(producer, a.broker.metrics, a.log)
+	producer := broker2.NewProducer(a.broker.Addr)
+	metr := mtrcs.NewMetrics(producer, a.broker.Metrics, a.log)
 
 	serv := service.NewService(repo, metr, a.log)
 

@@ -6,7 +6,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-func NewCarWorker(brokerAddr string, gaugeTopics *GaugeTopics) (metrics.Worker, []prometheus.Collector) {
+func NewWorker(brokerAddr string, gaugeTopics *GaugeTopics) (metrics.Worker, []prometheus.Collector) {
 	gauge := NewGaugeMetric(brokerAddr, gaugeTopics)
 
 	return &worker{

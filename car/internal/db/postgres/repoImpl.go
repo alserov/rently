@@ -19,11 +19,30 @@ func NewRepo(db *sqlx.DB) db.Repository {
 }
 
 const (
-	ERR_NO_ROWS = "nothing found"
+	ERR_NO_ROWS       = "nothing found"
+	ERR_NOT_AVAILABLE = "not available"
 )
 
 type repository struct {
 	db *sqlx.DB
+}
+
+func (r *repository) CheckIfCarAvailable(ctx context.Context, req models.CheckIfCarAvailable) error {
+	query := `SELECT EXISTS(
+				SELECT 1 FROM cars WHERE $1 NOT IN 
+                SELECT car_uuid FROM rents WHERE rent_start > $2 OR rent_end < $3 LIMIT 1 as available
+                AND available.car_uuid = $1)`
+
+	var exists bool
+	err := r.db.Get(&exists, query, req.CarUUID, req.RentStart, req.RentEnd)
+	if errors.Is(err, sql.ErrNoRows) {
+		return status.Error(codes.NotFound, ERR_NOT_AVAILABLE)
+	}
+	if err != nil {
+		return status.Error(codes.Internal, err.Error())
+	}
+
+	return nil
 }
 
 func (r *repository) GetCarsByParams(ctx context.Context, params models.CarParams) ([]models.Car, error) {

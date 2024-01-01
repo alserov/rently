@@ -29,6 +29,12 @@ type CancelRentInfo struct {
 	CardCredentials string  `db:"card_credentials"`
 }
 
+type CheckIfCarAvailable struct {
+	CarUUID   string
+	RentStart *time.Time
+	RentEnd   *time.Time
+}
+
 // ============================================
 
 type Car struct {
