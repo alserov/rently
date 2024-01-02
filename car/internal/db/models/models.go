@@ -16,17 +16,17 @@ type CreateRentReq struct {
 
 	CarUUID string `db:"car_uuid"`
 
-	PhoneNumber     string `db:"phone_number"`
-	PassportNumber  string `db:"passport_number"`
-	CardCredentials string `db:"card_credentials"`
+	PhoneNumber    string `db:"phone_number"`
+	PassportNumber string `db:"passport_number"`
+	ChargeID       string `db:"charge_id"`
 
 	RentStart *time.Time `db:"rent_start"`
 	RentEnd   *time.Time `db:"rent_end"`
 }
 
 type CancelRentInfo struct {
-	RentPrice       float32 `db:"rent_price"`
-	CardCredentials string  `db:"card_credentials"`
+	RentPrice float32 `db:"rent_price"`
+	ChargeID  string  `db:"chargeID"`
 }
 
 type CheckIfCarAvailable struct {

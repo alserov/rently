@@ -114,7 +114,7 @@ func (r *repository) GetAvailableCars(ctx context.Context, period models.Period)
 }
 
 func (r *repository) CancelRent(ctx context.Context, rentUUID string) (rentInfo models.CancelRentInfo, err error) {
-	query := `DELETE FROM rents * WHERE rent_uuid = $1 RETURNING card_credentials, rent_price, car_uuid, rent_start,rent_end`
+	query := `DELETE FROM rents WHERE rent_uuid = $1 RETURNING charge_id, rent_price`
 
 	err = r.db.QueryRow(query, rentUUID).Scan(&rentInfo)
 	if errors.Is(err, sql.ErrNoRows) {

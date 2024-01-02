@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/charge"
-	"github.com/stripe/stripe-go/topup"
+	"github.com/stripe/stripe-go/refund"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"time"
@@ -13,7 +13,7 @@ import (
 type Payer interface {
 	CountPrice(pricePerDay float32, service Service) float32
 
-	Refund(source string, amount float32) error
+	Refund(chargeID string, amount float32) error
 	Debit(source string, amount float32) (string, error)
 }
 
@@ -37,20 +37,17 @@ type Service interface {
 }
 
 func (p payer) CountPrice(pricePerDay float32, service Service) float32 {
-	return pricePerDay * float32(service.Period())
+	return pricePerDay * float32(service.Period().Hours()/24) * 100
 }
 
-func (p payer) Refund(source string, amount float32) error {
-	params := &stripe.TopupParams{
-		Amount: stripe.Int64(int64(amount)),
-		Source: &stripe.SourceParams{
-			Card: &stripe.CardParams{
-				ID: source,
-			},
-		},
+func (p payer) Refund(chargeID string, amount float32) error {
+	params := &stripe.RefundParams{
+		Amount:               stripe.Int64(int64(amount)),
+		Charge:               stripe.String(chargeID),
+		RefundApplicationFee: stripe.Bool(false),
 	}
 
-	_, err := topup.New(params)
+	_, err := refund.New(params)
 	if err != nil {
 		return status.Error(codes.Internal, err.Error())
 	}

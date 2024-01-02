@@ -97,6 +97,14 @@ func (s serviceConverter) CheckRentToService(res repo.Rent) models.Rent {
 }
 
 func (s serviceConverter) CreateRentToRepo(req models.CreateRentReq) repo.CreateRentReq {
-	//TODO implement me
-	panic("implement me")
+	return repo.CreateRentReq{
+		RentUUID:       req.RentUUID,
+		CarUUID:        req.CarUUID,
+		PhoneNumber:    req.PhoneNumber,
+		PassportNumber: req.PassportNumber,
+		ChargeID:       "",
+		RentPrice:      100,
+		RentStart:      req.RentStart,
+		RentEnd:        req.RentEnd,
+	}
 }

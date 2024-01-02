@@ -13,6 +13,7 @@ type Rent struct {
 type CreateRentReq struct {
 	RentUUID string
 
+	CarPricePerDay float32
 	CarUUID        string
 	PhoneNumber    string
 	PassportNumber string

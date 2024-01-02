@@ -34,7 +34,7 @@ func NewService(repo db.Repository, metrics metrics.Metrics, log *slog.Logger) S
 		repo:    repo,
 		metrics: metrics,
 		convert: convertation.NewServiceConverter(),
-		payment: payment.NewPayer("API KEY"),
+		payment: payment.NewPayer("sk_test_51OU56CDOnc0MdcTNBwddO2cn8NrEebjfuAGjBjj9xSyKmiUO4ajJ1vZ0yBoOsAMq0HjHqCmis2niwoj2EZYCDLOA00lcCUlWxh"),
 	}
 }
 
@@ -79,13 +79,15 @@ func (s *service) GetAvailableCars(ctx context.Context, period models.Period) (a
 	return s.convert.CarsToService(cars), nil
 }
 
-func (s *service) CancelRent(ctx context.Context, rentUUID string) (err error) {
-	_, err = s.repo.CancelRent(ctx, rentUUID)
+func (s *service) CancelRent(ctx context.Context, rentUUID string) error {
+	rent, err := s.repo.CancelRent(ctx, rentUUID)
 	if err != nil {
 		return err
 	}
 
-	// TODO: money refund
+	if err = s.payment.Refund(rent.ChargeID, rent.RentPrice); err != nil {
+		return err
+	}
 
 	s.metrics.DecreaseActiveRentsAmount()
 	return nil
@@ -107,7 +109,7 @@ func (s *service) CreateRent(ctx context.Context, req models.CreateRentReq) (mod
 		return models.CreateRentRes{}, err
 	}
 
-	totalPrice := s.payment.CountPrice(5, &req)
+	totalPrice := s.payment.CountPrice(req.CarPricePerDay, &req)
 
 	if err := s.repo.CreateRent(ctx, s.convert.CreateRentToRepo(req)); err != nil {
 		return models.CreateRentRes{}, err

@@ -8,14 +8,18 @@ import (
 func TestPayer(t *testing.T) {
 	p := NewPayer("sk_test_51OU56CDOnc0MdcTNBwddO2cn8NrEebjfuAGjBjj9xSyKmiUO4ajJ1vZ0yBoOsAMq0HjHqCmis2niwoj2EZYCDLOA00lcCUlWxh")
 
+	const (
+		amount = 100_00
+		source = "tok_visa"
+	)
+
 	// invalid price
-	chargeID, err := p.Debit(-10000)
+	chargeID, err := p.Debit(source, 0)
 	require.Error(t, err)
 	require.Empty(t, chargeID)
 
-	const amount = 100_00
 	// valid price
-	chargeID, err = p.Debit(amount)
+	chargeID, err = p.Debit(source, amount)
 	require.NoError(t, err)
 	require.NotEmpty(t, chargeID)
 

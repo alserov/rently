@@ -39,7 +39,7 @@ type serverConverter struct {
 func (s *serverConverter) CreateRentToPb(res models.CreateRentRes) *car.CreateRentRes {
 	return &car.CreateRentRes{
 		RentUUID: res.RentUUID,
-		Charge
+		ChargeID: res.ChargeID,
 	}
 }
 
