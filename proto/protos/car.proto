@@ -4,6 +4,7 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
 option go_package = "github.com/alserov/rently/proto/gen/car";
+package carservice;
 
 service Cars {
   rpc CreateRent(CreateRentReq) returns (CreateRentRes);
@@ -20,14 +21,14 @@ message CreateRentReq {
   string CarUUID = 1;
   string PhoneNumber = 2;
   string PassportNumber = 3;
-  string CardCredentials = 4;
 
-  google.protobuf.Timestamp RentStart = 5;
-  google.protobuf.Timestamp RentEnd = 6;
+  google.protobuf.Timestamp RentStart = 4;
+  google.protobuf.Timestamp RentEnd = 5;
 }
 
 message CreateRentRes {
   string RentUUID = 1;
+  string Secret = 2;
 }
 
 

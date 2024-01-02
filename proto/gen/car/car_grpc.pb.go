@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v4.24.1
-// source: car.proto
+// source: car/car.proto
 
 package car
 
@@ -41,7 +41,7 @@ func NewCarsClient(cc grpc.ClientConnInterface) CarsClient {
 
 func (c *carsClient) CreateRent(ctx context.Context, in *CreateRentReq, opts ...grpc.CallOption) (*CreateRentRes, error) {
 	out := new(CreateRentRes)
-	err := c.cc.Invoke(ctx, "/Cars/CreateRent", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/carservice.Cars/CreateRent", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (c *carsClient) CreateRent(ctx context.Context, in *CreateRentReq, opts ...
 
 func (c *carsClient) CancelRent(ctx context.Context, in *CancelRentReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/Cars/CancelRent", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/carservice.Cars/CancelRent", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func (c *carsClient) CancelRent(ctx context.Context, in *CancelRentReq, opts ...
 
 func (c *carsClient) CheckRent(ctx context.Context, in *CheckRentReq, opts ...grpc.CallOption) (*CheckRentRes, error) {
 	out := new(CheckRentRes)
-	err := c.cc.Invoke(ctx, "/Cars/CheckRent", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/carservice.Cars/CheckRent", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (c *carsClient) CheckRent(ctx context.Context, in *CheckRentReq, opts ...gr
 
 func (c *carsClient) GetAvailableCars(ctx context.Context, in *GetAvailableCarsReq, opts ...grpc.CallOption) (*GetCarsRes, error) {
 	out := new(GetCarsRes)
-	err := c.cc.Invoke(ctx, "/Cars/GetAvailableCars", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/carservice.Cars/GetAvailableCars", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (c *carsClient) GetAvailableCars(ctx context.Context, in *GetAvailableCarsR
 
 func (c *carsClient) GetCarsByParams(ctx context.Context, in *GetCarsByParamsReq, opts ...grpc.CallOption) (*GetCarsRes, error) {
 	out := new(GetCarsRes)
-	err := c.cc.Invoke(ctx, "/Cars/GetCarsByParams", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/carservice.Cars/GetCarsByParams", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (c *carsClient) GetCarsByParams(ctx context.Context, in *GetCarsByParamsReq
 
 func (c *carsClient) GetCarByUUID(ctx context.Context, in *GetCarByUUIDReq, opts ...grpc.CallOption) (*Car, error) {
 	out := new(Car)
-	err := c.cc.Invoke(ctx, "/Cars/GetCarByUUID", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/carservice.Cars/GetCarByUUID", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +151,7 @@ func _Cars_CreateRent_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Cars/CreateRent",
+		FullMethod: "/carservice.Cars/CreateRent",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CarsServer).CreateRent(ctx, req.(*CreateRentReq))
@@ -169,7 +169,7 @@ func _Cars_CancelRent_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Cars/CancelRent",
+		FullMethod: "/carservice.Cars/CancelRent",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CarsServer).CancelRent(ctx, req.(*CancelRentReq))
@@ -187,7 +187,7 @@ func _Cars_CheckRent_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Cars/CheckRent",
+		FullMethod: "/carservice.Cars/CheckRent",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CarsServer).CheckRent(ctx, req.(*CheckRentReq))
@@ -205,7 +205,7 @@ func _Cars_GetAvailableCars_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Cars/GetAvailableCars",
+		FullMethod: "/carservice.Cars/GetAvailableCars",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CarsServer).GetAvailableCars(ctx, req.(*GetAvailableCarsReq))
@@ -223,7 +223,7 @@ func _Cars_GetCarsByParams_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Cars/GetCarsByParams",
+		FullMethod: "/carservice.Cars/GetCarsByParams",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CarsServer).GetCarsByParams(ctx, req.(*GetCarsByParamsReq))
@@ -241,7 +241,7 @@ func _Cars_GetCarByUUID_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Cars/GetCarByUUID",
+		FullMethod: "/carservice.Cars/GetCarByUUID",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CarsServer).GetCarByUUID(ctx, req.(*GetCarByUUIDReq))
@@ -253,7 +253,7 @@ func _Cars_GetCarByUUID_Handler(srv interface{}, ctx context.Context, dec func(i
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Cars_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Cars",
+	ServiceName: "carservice.Cars",
 	HandlerType: (*CarsServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -282,5 +282,5 @@ var Cars_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "car.proto",
+	Metadata: "car/car.proto",
 }
