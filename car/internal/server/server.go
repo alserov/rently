@@ -24,7 +24,8 @@ type server struct {
 	service service.Service
 
 	validation validation.Validator
-	convert    convertation.ServerConverter
+
+	convert convertation.ServerConverter
 }
 
 func (s *server) CreateRent(ctx context.Context, req *car.CreateRentReq) (*car.CreateRentRes, error) {
@@ -32,12 +33,12 @@ func (s *server) CreateRent(ctx context.Context, req *car.CreateRentReq) (*car.C
 		return nil, err
 	}
 
-	rentUUID, err := s.service.CreateRent(ctx, s.convert.CreateRentReqToService(req))
+	res, err := s.service.CreateRent(ctx, s.convert.CreateRentReqToService(req))
 	if err != nil {
 		return nil, err
 	}
 
-	return &car.CreateRentRes{RentUUID: rentUUID}, nil
+	return s.convert.CreateRentToPb(res), nil
 }
 
 func (s *server) CancelRent(ctx context.Context, req *car.CancelRentReq) (*emptypb.Empty, error) {

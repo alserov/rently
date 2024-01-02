@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
@@ -17,6 +16,5 @@ func TestCreateRentReq_Period(t *testing.T) {
 	}
 
 	period := rent.Period()
-	fmt.Println(period)
-	require.NotEmpty(t, period)
+	require.Equal(t, time.Hour*24*3, period)
 }

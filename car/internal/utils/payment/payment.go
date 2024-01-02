@@ -1,15 +1,24 @@
 package payment
 
-import "time"
+import (
+	"fmt"
+	"github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go/charge"
+	"github.com/stripe/stripe-go/topup"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"time"
+)
 
 type Payer interface {
-	CountPrice(service Service) float32
+	CountPrice(pricePerDay float32, service Service) float32
 
-	TopUp(cardNumber string, amount float32) error
-	Debit(cardNumber string, amount float32) error
+	Refund(source string, amount float32) error
+	Debit(source string, amount float32) (string, error)
 }
 
 func NewPayer(apiKey string) Payer {
+	stripe.Key = apiKey
 	return &payer{
 		key: apiKey,
 	}
@@ -19,20 +28,55 @@ type payer struct {
 	key string
 }
 
+const (
+	ERR_INVALID_PRICE = "payment amount must be greater than or equal to 1"
+)
+
 type Service interface {
-	Price() float32
 	Period() time.Duration
 }
 
-func (p payer) CountPrice(service Service) float32 {
-	return service.Price() * float32(service.Period())
+func (p payer) CountPrice(pricePerDay float32, service Service) float32 {
+	return pricePerDay * float32(service.Period())
 }
 
-func (p payer) TopUp(cardNumber string, amount float32) error {
-	panic("")
+func (p payer) Refund(source string, amount float32) error {
+	params := &stripe.TopupParams{
+		Amount: stripe.Int64(int64(amount)),
+		Source: &stripe.SourceParams{
+			Card: &stripe.CardParams{
+				ID: source,
+			},
+		},
+	}
+
+	_, err := topup.New(params)
+	if err != nil {
+		return status.Error(codes.Internal, err.Error())
+	}
+
+	return nil
 }
 
-func (p payer) Debit(cardNumber string, amount float32) error {
-	//TODO implement me
-	panic("implement me")
+func (p payer) Debit(source string, amount float32) (string, error) {
+	if amount < 1 {
+		return "", status.Error(codes.Internal, ERR_INVALID_PRICE)
+	}
+
+	params := &stripe.ChargeParams{
+		Amount:      stripe.Int64(int64(amount)),
+		Currency:    stripe.String(string(stripe.CurrencyUSD)),
+		Description: stripe.String("debit card balance"),
+	}
+
+	if err := params.SetSource(source); err != nil {
+		return "", status.Error(codes.Internal, fmt.Sprintf("failed to set source: %v", err))
+	}
+
+	ch, err := charge.New(params)
+	if err != nil {
+		return "", status.Error(codes.Internal, fmt.Sprintf("failed to init charge: %v", err))
+	}
+
+	return ch.ID, nil
 }

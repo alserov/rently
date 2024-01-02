@@ -20,6 +20,7 @@ type PbToService interface {
 }
 
 type ToPb interface {
+	CreateRentToPb(res models.CreateRentRes) *car.CreateRentRes
 	CheckRentToPb(res models.Rent) *car.CheckRentRes
 	CarsToPb(res []models.Car) *car.GetCarsRes
 	CarToPb(res models.Car) *car.Car
@@ -33,6 +34,13 @@ func NewServerConverter() ServerConverter {
 
 type serverConverter struct {
 	wg sync.WaitGroup
+}
+
+func (s *serverConverter) CreateRentToPb(res models.CreateRentRes) *car.CreateRentRes {
+	return &car.CreateRentRes{
+		RentUUID: res.RentUUID,
+		Charge
+	}
 }
 
 func (s *serverConverter) GetCarsByParamsReqToService(req *car.GetCarsByParamsReq) models.CarParams {
@@ -94,12 +102,11 @@ func (s *serverConverter) CreateRentReqToService(req *car.CreateRentReq) models.
 	end := req.RentEnd.AsTime()
 
 	return models.CreateRentReq{
-		CarUUID:         req.CarUUID,
-		PhoneNumber:     req.PhoneNumber,
-		PassportNumber:  req.PassportNumber,
-		CardCredentials: req.CardCredentials,
-		RentStart:       &start,
-		RentEnd:         &end,
+		CarUUID:        req.CarUUID,
+		PhoneNumber:    req.PhoneNumber,
+		PassportNumber: req.PassportNumber,
+		RentStart:      &start,
+		RentEnd:        &end,
 	}
 }
 

@@ -23,7 +23,7 @@ type CarActions interface {
 }
 
 type RentActions interface {
-	CreateRent(ctx context.Context, req models.CreateRentReq) (rentUUID string, err error)
+	CreateRent(ctx context.Context, req models.CreateRentReq) (res models.CreateRentRes, err error)
 	CancelRent(ctx context.Context, rentUUID string) (err error)
 	CheckRent(ctx context.Context, rentUUID string) (res models.Rent, err error)
 }
@@ -100,23 +100,27 @@ func (s *service) CheckRent(ctx context.Context, rentUUID string) (res models.Re
 	return s.convert.CheckRentToService(rent), nil
 }
 
-func (s *service) CreateRent(ctx context.Context, req models.CreateRentReq) (rentUUID string, err error) {
+func (s *service) CreateRent(ctx context.Context, req models.CreateRentReq) (models.CreateRentRes, error) {
 	req.RentUUID = uuid.New().String()
 
-	if err = s.repo.CheckIfCarAvailable(ctx, s.convert.CheckIfCarAvailableToRepo(req)); err != nil {
-		return "", err
+	if err := s.repo.CheckIfCarAvailable(ctx, s.convert.CheckIfCarAvailableToRepo(req)); err != nil {
+		return models.CreateRentRes{}, err
 	}
 
-	totalPrice := s.payment.CountPrice(&req)
+	totalPrice := s.payment.CountPrice(5, &req)
 
-	if err = s.repo.CreateRent(ctx, s.convert.CreateRentToRepo(req)); err != nil {
-		return "", err
+	if err := s.repo.CreateRent(ctx, s.convert.CreateRentToRepo(req)); err != nil {
+		return models.CreateRentRes{}, err
 	}
 
-	if err = s.payment.Debit(req.CardCredentials, totalPrice); err != nil {
-		return "", err
+	chargeID, err := s.payment.Debit(req.PaymentSource, totalPrice)
+	if err != nil {
+		return models.CreateRentRes{}, err
 	}
 
 	s.metrics.IncreaseActiveRentsAmount()
-	return req.RentUUID, nil
+	return models.CreateRentRes{
+		RentUUID: req.RentUUID,
+		ChargeID: chargeID,
+	}, nil
 }

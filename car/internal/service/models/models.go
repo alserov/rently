@@ -13,10 +13,10 @@ type Rent struct {
 type CreateRentReq struct {
 	RentUUID string
 
-	CarUUID         string
-	PhoneNumber     string
-	PassportNumber  string
-	CardCredentials string
+	CarUUID        string
+	PhoneNumber    string
+	PassportNumber string
+	PaymentSource  string
 
 	RentStart *time.Time
 	RentEnd   *time.Time
@@ -27,8 +27,9 @@ func (c *CreateRentReq) Period() time.Duration {
 	return period
 }
 
-func (c *CreateRentReq) Price() float32 {
-	panic("")
+type CreateRentRes struct {
+	RentUUID string
+	ChargeID string
 }
 
 type CancelRentReq struct {

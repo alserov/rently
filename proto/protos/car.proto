@@ -1,5 +1,5 @@
 syntax = "proto3";
-
+// protoc -I. --go_opt=paths=source_relative --go-grpc_opt=paths=source_relative --go_out=./gen --go-grpc_out=./gen protos/car.proto
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
@@ -29,7 +29,7 @@ message CreateRentReq {
 
 message CreateRentRes {
   string RentUUID = 1;
-  string Secret = 2;
+  string ChargeID = 2;
 }
 
 
