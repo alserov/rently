@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Rent struct {
 	CarUUID   string
@@ -44,6 +46,7 @@ type CheckRentReq struct {
 // ============================================
 
 type Car struct {
+	Images      [][]byte
 	Brand       string
 	Type        string
 	MaxSpeed    int32

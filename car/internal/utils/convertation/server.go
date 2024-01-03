@@ -4,7 +4,6 @@ import (
 	"github.com/alserov/rently/car/internal/service/models"
 	"github.com/alserov/rently/proto/gen/car"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"sync"
 	"time"
 )
 
@@ -14,9 +13,13 @@ type ServerConverter interface {
 }
 
 type PbToService interface {
-	GetAvailableCarsReqToService(req *car.GetAvailableCarsReq) models.Period
+	CreateCarReqToService(req *car.CreateCarReq) models.Car
 	CreateRentReqToService(req *car.CreateRentReq) models.CreateRentReq
+
 	GetCarsByParamsReqToService(req *car.GetCarsByParamsReq) models.CarParams
+	GetAvailableCarsReqToService(req *car.GetAvailableCarsReq) models.Period
+
+	UpdateCarPriceReqToService(req *car.UpdateCarPriceReq) models.UpdateCarPriceReq
 }
 
 type ToPb interface {
@@ -27,13 +30,29 @@ type ToPb interface {
 }
 
 func NewServerConverter() ServerConverter {
-	return &serverConverter{
-		wg: sync.WaitGroup{},
-	}
+	return &serverConverter{}
 }
 
 type serverConverter struct {
-	wg sync.WaitGroup
+}
+
+func (s *serverConverter) UpdateCarPriceReqToService(req *car.UpdateCarPriceReq) models.UpdateCarPriceReq {
+	return models.UpdateCarPriceReq{
+		CarUUID: req.CarUUID,
+		Price:   req.PricePerDay,
+	}
+}
+
+func (s *serverConverter) CreateCarReqToService(req *car.CreateCarReq) models.Car {
+	return models.Car{
+		Images:      req.Images,
+		Brand:       req.Brand,
+		Type:        req.Type,
+		MaxSpeed:    req.MaxSpeed,
+		Seats:       req.Seats,
+		Category:    req.Category,
+		PricePerDay: req.PricePerDay,
+	}
 }
 
 func (s *serverConverter) CreateRentToPb(res models.CreateRentRes) *car.CreateRentRes {
@@ -44,8 +63,14 @@ func (s *serverConverter) CreateRentToPb(res models.CreateRentRes) *car.CreateRe
 }
 
 func (s *serverConverter) GetCarsByParamsReqToService(req *car.GetCarsByParamsReq) models.CarParams {
-	//TODO implement me
-	panic("implement me")
+	return models.CarParams{
+		Brand:       req.Brand,
+		Type:        req.Type,
+		MaxSpeed:    req.MaxSpeed,
+		Seats:       req.Seats,
+		Category:    req.Category,
+		PricePerDay: req.PricePerDay,
+	}
 }
 
 func (s *serverConverter) CarToPb(res models.Car) *car.Car {

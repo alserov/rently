@@ -10,7 +10,16 @@ type Config struct {
 	Port int
 	Env  string
 
+	DB Postgres
+
 	Broker Broker
+}
+
+type Postgres struct {
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	Name     string `yaml:"name"`
+	Host     string `yaml:"host"`
 }
 
 type Broker struct {
@@ -19,6 +28,8 @@ type Broker struct {
 		Topics struct {
 			DecreaseActiveRentsAmount string `yaml:"decreaseActiveRentsAmount"`
 			IncreaseActiveRentsAmount string `yaml:"increaseActiveRentsAmount"`
+			IncreaseRentsCancel       string `yaml:"increaseRentsCancel"`
+			NotifyBrandDemand         string `yaml:"notifyBrandDemand"`
 		} `yaml:"topics"`
 	} `yaml:"metrics"`
 }

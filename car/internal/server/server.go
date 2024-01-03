@@ -28,6 +28,42 @@ type server struct {
 	convert convertation.ServerConverter
 }
 
+func (s *server) CreateCar(ctx context.Context, req *car.CreateCarReq) (*emptypb.Empty, error) {
+	if err := s.validation.ValidateCreateCarReq(req); err != nil {
+		return nil, err
+	}
+
+	if err := s.service.CreateCar(ctx, s.convert.CreateCarReqToService(req)); err != nil {
+		return nil, err
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+func (s *server) DeleteCar(ctx context.Context, req *car.DeleteCarReq) (*emptypb.Empty, error) {
+	if err := s.validation.ValidateDeleteCarReq(req); err != nil {
+		return nil, err
+	}
+
+	if err := s.service.DeleteCar(ctx, req.CarUUID); err != nil {
+		return nil, err
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+func (s *server) UpdateCarPrice(ctx context.Context, req *car.UpdateCarPriceReq) (*emptypb.Empty, error) {
+	if err := s.validation.ValidateUpdateCarPriceReq(req); err != nil {
+		return nil, err
+	}
+
+	if err := s.service.UpdateCarPrice(ctx, s.convert.UpdateCarPriceReqToService(req)); err != nil {
+		return nil, err
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
 func (s *server) CreateRent(ctx context.Context, req *car.CreateRentReq) (*car.CreateRentRes, error) {
 	if err := s.validation.ValidateCreateRentReq(req); err != nil {
 		return nil, err

@@ -57,6 +57,18 @@ func (mr *MockMetricsMockRecorder) IncreaseActiveRentsAmount() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncreaseActiveRentsAmount", reflect.TypeOf((*MockMetrics)(nil).IncreaseActiveRentsAmount))
 }
 
+// IncreaseRentsCancel mocks base method.
+func (m *MockMetrics) IncreaseRentsCancel() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "IncreaseRentsCancel")
+}
+
+// IncreaseRentsCancel indicates an expected call of IncreaseRentsCancel.
+func (mr *MockMetricsMockRecorder) IncreaseRentsCancel() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncreaseRentsCancel", reflect.TypeOf((*MockMetrics)(nil).IncreaseRentsCancel))
+}
+
 // NotifyBrandDemand mocks base method.
 func (m *MockMetrics) NotifyBrandDemand(brand string) {
 	m.ctrl.T.Helper()

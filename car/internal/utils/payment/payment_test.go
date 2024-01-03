@@ -1,12 +1,16 @@
 package payment
 
 import (
+	"github.com/alserov/rently/car/internal/service/models"
 	"github.com/stretchr/testify/require"
 	"testing"
+	"time"
 )
 
+const api_key = "sk_test_51OU56CDOnc0MdcTNBwddO2cn8NrEebjfuAGjBjj9xSyKmiUO4ajJ1vZ0yBoOsAMq0HjHqCmis2niwoj2EZYCDLOA00lcCUlWxh"
+
 func TestPayer(t *testing.T) {
-	p := NewPayer("sk_test_51OU56CDOnc0MdcTNBwddO2cn8NrEebjfuAGjBjj9xSyKmiUO4ajJ1vZ0yBoOsAMq0HjHqCmis2niwoj2EZYCDLOA00lcCUlWxh")
+	p := NewPayer(api_key)
 
 	const (
 		amount = 100_00
@@ -26,4 +30,17 @@ func TestPayer(t *testing.T) {
 	// refund
 	err = p.Refund(chargeID, amount)
 	require.NoError(t, err)
+}
+
+func TestPayer_CountPrice(t *testing.T) {
+	p := NewPayer(api_key)
+
+	start := time.Now()
+	end := time.Now().Add(time.Hour * 24 * 5)
+
+	price := p.CountPrice(50, &models.CreateRentReq{
+		RentStart: &start,
+		RentEnd:   &end,
+	})
+	require.Equal(t, float32(250), price/100)
 }

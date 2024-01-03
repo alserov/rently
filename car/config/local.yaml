@@ -7,4 +7,11 @@ broker:
     topics:
       decreaseActiveRentsAmount: ACTIVE_CAR_RENTS_INC
       increaseActiveRentsAmount: ACTIVE_CAR_RENTS_DEC
+      increaseRentsCancel: RENTS_CANCELED
+      notifyBrandDemand: REQUESTED_BRANDS
 
+db:
+  host: localhost
+  user: postgres
+  password: 1787
+  name: template1

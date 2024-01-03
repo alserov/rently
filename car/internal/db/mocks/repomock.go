@@ -79,6 +79,20 @@ func (mr *MockRepositoryMockRecorder) CheckRent(ctx, rentUUID interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckRent", reflect.TypeOf((*MockRepository)(nil).CheckRent), ctx, rentUUID)
 }
 
+// CreateCar mocks base method.
+func (m *MockRepository) CreateCar(ctx context.Context, car models.Car) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateCar", ctx, car)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateCar indicates an expected call of CreateCar.
+func (mr *MockRepositoryMockRecorder) CreateCar(ctx, car interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCar", reflect.TypeOf((*MockRepository)(nil).CreateCar), ctx, car)
+}
+
 // CreateRent mocks base method.
 func (m *MockRepository) CreateRent(ctx context.Context, req models.CreateRentReq) error {
 	m.ctrl.T.Helper()
@@ -91,6 +105,20 @@ func (m *MockRepository) CreateRent(ctx context.Context, req models.CreateRentRe
 func (mr *MockRepositoryMockRecorder) CreateRent(ctx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRent", reflect.TypeOf((*MockRepository)(nil).CreateRent), ctx, req)
+}
+
+// DeleteCar mocks base method.
+func (m *MockRepository) DeleteCar(ctx context.Context, uuid string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteCar", ctx, uuid)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteCar indicates an expected call of DeleteCar.
+func (mr *MockRepositoryMockRecorder) DeleteCar(ctx, uuid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCar", reflect.TypeOf((*MockRepository)(nil).DeleteCar), ctx, uuid)
 }
 
 // GetAvailableCars mocks base method.
@@ -136,6 +164,85 @@ func (m *MockRepository) GetCarsByParams(ctx context.Context, params models.CarP
 func (mr *MockRepositoryMockRecorder) GetCarsByParams(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCarsByParams", reflect.TypeOf((*MockRepository)(nil).GetCarsByParams), ctx, params)
+}
+
+// UpdateCarPrice mocks base method.
+func (m *MockRepository) UpdateCarPrice(ctx context.Context, req models.UpdateCarPriceReq) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateCarPrice", ctx, req)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateCarPrice indicates an expected call of UpdateCarPrice.
+func (mr *MockRepositoryMockRecorder) UpdateCarPrice(ctx, req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCarPrice", reflect.TypeOf((*MockRepository)(nil).UpdateCarPrice), ctx, req)
+}
+
+// MockAdminRepository is a mock of AdminRepository interface.
+type MockAdminRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockAdminRepositoryMockRecorder
+}
+
+// MockAdminRepositoryMockRecorder is the mock recorder for MockAdminRepository.
+type MockAdminRepositoryMockRecorder struct {
+	mock *MockAdminRepository
+}
+
+// NewMockAdminRepository creates a new mock instance.
+func NewMockAdminRepository(ctrl *gomock.Controller) *MockAdminRepository {
+	mock := &MockAdminRepository{ctrl: ctrl}
+	mock.recorder = &MockAdminRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAdminRepository) EXPECT() *MockAdminRepositoryMockRecorder {
+	return m.recorder
+}
+
+// CreateCar mocks base method.
+func (m *MockAdminRepository) CreateCar(ctx context.Context, car models.Car) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateCar", ctx, car)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateCar indicates an expected call of CreateCar.
+func (mr *MockAdminRepositoryMockRecorder) CreateCar(ctx, car interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCar", reflect.TypeOf((*MockAdminRepository)(nil).CreateCar), ctx, car)
+}
+
+// DeleteCar mocks base method.
+func (m *MockAdminRepository) DeleteCar(ctx context.Context, uuid string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteCar", ctx, uuid)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteCar indicates an expected call of DeleteCar.
+func (mr *MockAdminRepositoryMockRecorder) DeleteCar(ctx, uuid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCar", reflect.TypeOf((*MockAdminRepository)(nil).DeleteCar), ctx, uuid)
+}
+
+// UpdateCarPrice mocks base method.
+func (m *MockAdminRepository) UpdateCarPrice(ctx context.Context, req models.UpdateCarPriceReq) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateCarPrice", ctx, req)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateCarPrice indicates an expected call of UpdateCarPrice.
+func (mr *MockAdminRepositoryMockRecorder) UpdateCarPrice(ctx, req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCarPrice", reflect.TypeOf((*MockAdminRepository)(nil).UpdateCarPrice), ctx, req)
 }
 
 // MockCarRepository is a mock of CarRepository interface.

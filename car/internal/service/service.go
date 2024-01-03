@@ -6,9 +6,11 @@ import (
 	"github.com/alserov/rently/car/internal/metrics"
 	"github.com/alserov/rently/car/internal/service/models"
 	"github.com/alserov/rently/car/internal/utils/convertation"
+	"github.com/alserov/rently/car/internal/utils/files"
 	"github.com/alserov/rently/car/internal/utils/payment"
 	"github.com/google/uuid"
 	"log/slog"
+	"sync"
 )
 
 type Service interface {
@@ -35,11 +37,14 @@ type RentActions interface {
 	CheckRent(ctx context.Context, rentUUID string) (res models.Rent, err error)
 }
 
+const imagesFolder = "images"
+
 func NewService(repo db.Repository, metrics metrics.Metrics, log *slog.Logger) Service {
 	return &service{
 		log:     log,
 		repo:    repo,
 		metrics: metrics,
+		files:   files.NewFiler(imagesFolder),
 		convert: convertation.NewServiceConverter(),
 		payment: payment.NewPayer("sk_test_51OU56CDOnc0MdcTNBwddO2cn8NrEebjfuAGjBjj9xSyKmiUO4ajJ1vZ0yBoOsAMq0HjHqCmis2niwoj2EZYCDLOA00lcCUlWxh"),
 	}
@@ -55,10 +60,40 @@ type service struct {
 	convert convertation.ServiceConverter
 
 	payment payment.Payer
+
+	files files.Filer
 }
 
 func (s *service) CreateCar(ctx context.Context, car models.Car) error {
+	car.UUID = uuid.New().String()
+
+	var (
+		chErr = make(chan error)
+		wg    = sync.WaitGroup{}
+	)
+
+	wg.Add(len(car.Images))
+
+	for idx, img := range car.Images {
+		go func(img []byte, idx int, wg *sync.WaitGroup) {
+			defer wg.Done()
+			err := s.files.Save(img, car.UUID, idx)
+			if err != nil {
+				chErr <- err
+			}
+		}(img, idx, &wg)
+	}
+
+	go func() {
+		wg.Wait()
+		close(chErr)
+	}()
+
 	if err := s.repo.CreateCar(ctx, s.convert.CarToRepo(car)); err != nil {
+		return err
+	}
+
+	if err := <-chErr; err != nil {
 		return err
 	}
 
@@ -66,7 +101,20 @@ func (s *service) CreateCar(ctx context.Context, car models.Car) error {
 }
 
 func (s *service) DeleteCar(ctx context.Context, uuid string) error {
+	chErr := make(chan error)
+	go func() {
+		defer close(chErr)
+		err := s.files.Delete(uuid)
+		if err != nil {
+			chErr <- err
+		}
+	}()
+
 	if err := s.repo.DeleteCar(ctx, uuid); err != nil {
+		return err
+	}
+
+	if err := <-chErr; err != nil {
 		return err
 	}
 

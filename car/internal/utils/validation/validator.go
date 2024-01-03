@@ -10,12 +10,17 @@ import (
 )
 
 type Validator interface {
-	ValidateGetAvailableCarsReq(req *car.GetAvailableCarsReq) error
 	ValidateCreateRentReq(req *car.CreateRentReq) error
 	ValidateCancelRentReq(req *car.CancelRentReq) error
 	ValidateCheckRentReq(req *car.CheckRentReq) error
+
 	ValidateGetCarsByParamsReq(req *car.GetCarsByParamsReq) error
 	ValidateGetCarByUUID(req *car.GetCarByUUIDReq) error
+	ValidateGetAvailableCarsReq(req *car.GetAvailableCarsReq) error
+
+	ValidateCreateCarReq(req *car.CreateCarReq) error
+	ValidateDeleteCarReq(req *car.DeleteCarReq) error
+	ValidateUpdateCarPriceReq(req *car.UpdateCarPriceReq) error
 }
 
 func NewValidator() Validator {
@@ -32,6 +37,7 @@ const (
 	ERR_INVALID_SPEED         = "invalid speed"
 	ERR_INVALID_SEATS_AMOUNT  = "invalid seats amount"
 	ERR_INVALID_PRICE_PER_DAY = "price can not be less or equal to 0"
+	ERR_INVALID_IMAGES_AMOUNT = "the car should have at least one image"
 )
 
 type validator struct {
@@ -39,16 +45,67 @@ type validator struct {
 	card  *regexp.Regexp
 }
 
-func (v *validator) ValidateGetCarsByParamsReq(req *car.GetCarsByParamsReq) error {
-	if req.MaxSpeed < 0 {
-		return status.Error(codes.InvalidArgument, ERR_INVALID_SPEED)
+func (v *validator) ValidateDeleteCarReq(req *car.DeleteCarReq) error {
+	if req.GetCarUUID() == "" {
+		return status.Error(codes.InvalidArgument, fmt.Sprintf("car uuid %s", ERR_EMPTY))
+	}
+	return nil
+}
+
+func (v *validator) ValidateUpdateCarPriceReq(req *car.UpdateCarPriceReq) error {
+	if req.GetCarUUID() == "" {
+		return status.Error(codes.InvalidArgument, fmt.Sprintf("car uuid %s", ERR_EMPTY))
 	}
 
-	if req.Seats < 2 {
+	if req.GetPricePerDay() <= 0 {
+		return status.Error(codes.InvalidArgument, ERR_INVALID_PRICE_PER_DAY)
+	}
+
+	return nil
+}
+
+func (v *validator) ValidateCreateCarReq(req *car.CreateCarReq) error {
+	if req.GetBrand() == "" {
+		return status.Error(codes.InvalidArgument, fmt.Sprintf("car brand %s", ERR_EMPTY))
+	}
+
+	if req.GetCategory() == "" {
+		return status.Error(codes.InvalidArgument, fmt.Sprintf("car category %s", ERR_EMPTY))
+	}
+
+	if req.GetSeats() < 1 {
 		return status.Error(codes.InvalidArgument, ERR_INVALID_SEATS_AMOUNT)
 	}
 
-	if req.PricePerDay <= 0 {
+	if req.GetMaxSpeed() < 0 {
+		return status.Error(codes.InvalidArgument, ERR_INVALID_SPEED)
+	}
+
+	if req.GetPricePerDay() <= 0 {
+		return status.Error(codes.InvalidArgument, ERR_INVALID_PRICE_PER_DAY)
+	}
+
+	if req.GetType() == "" {
+		return status.Error(codes.InvalidArgument, fmt.Sprintf("car type %s", ERR_EMPTY))
+	}
+
+	if len(req.GetImages()) == 0 {
+		return status.Error(codes.InvalidArgument, ERR_INVALID_IMAGES_AMOUNT)
+	}
+
+	return nil
+}
+
+func (v *validator) ValidateGetCarsByParamsReq(req *car.GetCarsByParamsReq) error {
+	if req.GetMaxSpeed() < 0 {
+		return status.Error(codes.InvalidArgument, ERR_INVALID_SPEED)
+	}
+
+	if req.GetSeats() < 2 {
+		return status.Error(codes.InvalidArgument, ERR_INVALID_SEATS_AMOUNT)
+	}
+
+	if req.GetPricePerDay() <= 0 {
 		return status.Error(codes.InvalidArgument, ERR_INVALID_PRICE_PER_DAY)
 	}
 
@@ -100,7 +157,7 @@ func (v *validator) ValidateCreateRentReq(req *car.CreateRentReq) error {
 		return status.Error(codes.InvalidArgument, "rent end can not be earlier than rent start")
 	}
 
-	if req.GetCardCredentials() == "" {
+	if req.GetPaymentSource() == "" {
 		return status.Error(codes.InvalidArgument, fmt.Sprintf("card number %s", ERR_EMPTY))
 	}
 
@@ -112,7 +169,7 @@ func (v *validator) ValidateCreateRentReq(req *car.CreateRentReq) error {
 		return status.Error(codes.InvalidArgument, ERR_INVALID_PHONE_NUMBER)
 	}
 
-	if err := v.validateCardCredentials(req.CardCredentials); err != nil {
+	if err := v.validateCardCredentials(req.GetPaymentSource()); err != nil {
 		return status.Error(codes.InvalidArgument, ERR_INVALID_CARD_NUMBER)
 	}
 
