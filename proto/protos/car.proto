@@ -36,6 +36,7 @@ message CreateCarReq {
   int32 Seats = 4;
   string Category = 5;
   float PricePerDay = 6;
+  repeated bytes Images = 7;
 }
 
 message CreateRentReq {
@@ -79,6 +80,7 @@ message Car {
   string Category = 5;
   float PricePerDay = 6;
   string UUID = 7;
+  repeated bytes Images = 8;
 }
 
 message GetAvailableCarsReq {
@@ -97,6 +99,8 @@ message GetCarsByParamsReq {
   int32 Seats = 4;
   string Category = 5;
   float PricePerDay = 6;
+  string UUID = 7;
+  repeated bytes Images = 8;
 }
 
 message GetCarByUUIDReq {
