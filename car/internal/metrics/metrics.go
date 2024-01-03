@@ -6,20 +6,24 @@ import (
 )
 
 type Metrics interface {
-	IncreaseActiveRentsAmount()
-	DecreaseActiveRentsAmount()
+	IncreaseActiveRentsAmount() // active rents increment
+	DecreaseActiveRentsAmount() // active rents decrement
 
-	NotifyBrandDemand(brand string)
+	IncreaseRentsCancel() // how many rents were canceled
+
+	NotifyBrandDemand(brand string) // what brand is the most popular
 }
 
 type MetricTopics struct {
 	DecreaseActiveRentsAmount string
 	IncreaseActiveRentsAmount string
+	IncreaseRentsCancel       string
 	NotifyBrandDemand         string
 }
 
 func NewMetrics(producer sarama.SyncProducer, topics MetricTopics, log *slog.Logger) Metrics {
 	return &metrics{
+		log:    log,
 		p:      producer,
 		topics: topics,
 	}
@@ -33,30 +37,37 @@ type metrics struct {
 	topics MetricTopics
 }
 
+func (m *metrics) IncreaseRentsCancel() {
+	op := "metrics.IncreaseRentsCancel"
+	_, _, err := m.p.SendMessage(&sarama.ProducerMessage{
+		Topic: m.topics.IncreaseRentsCancel,
+	})
+	if err != nil {
+		m.log.Error("failed to send message: ", err.Error(), slog.String("op", op))
+	}
+}
+
 func (m *metrics) NotifyBrandDemand(brand string) {
+	op := "metrics.NotifyBrandDemand"
 	_, _, err := m.p.SendMessage(&sarama.ProducerMessage{
 		Topic: m.topics.NotifyBrandDemand,
 		Value: sarama.StringEncoder(brand),
 	})
-	if err != nil {
-		m.log.Error("failed to send message: ", err.Error())
-	}
+	m.log.Error("failed to send message: ", err.Error(), slog.String("op", op))
 }
 
 func (m *metrics) DecreaseActiveRentsAmount() {
+	op := "metrics.DecreaseActiveRentsAmount"
 	_, _, err := m.p.SendMessage(&sarama.ProducerMessage{
 		Topic: m.topics.DecreaseActiveRentsAmount,
 	})
-	if err != nil {
-		m.log.Error("failed to send message: ", err.Error())
-	}
+	m.log.Error("failed to send message: ", err.Error(), slog.String("op", op))
 }
 
 func (m *metrics) IncreaseActiveRentsAmount() {
+	op := "metrics.IncreaseActiveRentsAmount"
 	_, _, err := m.p.SendMessage(&sarama.ProducerMessage{
 		Topic: m.topics.IncreaseActiveRentsAmount,
 	})
-	if err != nil {
-		m.log.Error("failed to send message: ", err.Error())
-	}
+	m.log.Error("failed to send message: ", err.Error(), slog.String("op", op))
 }

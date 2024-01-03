@@ -14,6 +14,13 @@ import (
 type Service interface {
 	RentActions
 	CarActions
+	AdminActions
+}
+
+type AdminActions interface {
+	CreateCar(ctx context.Context, car models.Car) error
+	DeleteCar(ctx context.Context, uuid string) error
+	UpdateCarPrice(ctx context.Context, req models.UpdateCarPriceReq) error
 }
 
 type CarActions interface {
@@ -24,7 +31,7 @@ type CarActions interface {
 
 type RentActions interface {
 	CreateRent(ctx context.Context, req models.CreateRentReq) (res models.CreateRentRes, err error)
-	CancelRent(ctx context.Context, rentUUID string) (err error)
+	CancelRent(ctx context.Context, rentUUID string) error
 	CheckRent(ctx context.Context, rentUUID string) (res models.Rent, err error)
 }
 
@@ -48,6 +55,30 @@ type service struct {
 	convert convertation.ServiceConverter
 
 	payment payment.Payer
+}
+
+func (s *service) CreateCar(ctx context.Context, car models.Car) error {
+	if err := s.repo.CreateCar(ctx, s.convert.CarToRepo(car)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *service) DeleteCar(ctx context.Context, uuid string) error {
+	if err := s.repo.DeleteCar(ctx, uuid); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *service) UpdateCarPrice(ctx context.Context, req models.UpdateCarPriceReq) error {
+	if err := s.repo.UpdateCarPrice(ctx, s.convert.UpdateCarPriceToRepo(req)); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *service) GetCarByUUID(ctx context.Context, uuid string) (models.Car, error) {
@@ -90,6 +121,7 @@ func (s *service) CancelRent(ctx context.Context, rentUUID string) error {
 	}
 
 	s.metrics.DecreaseActiveRentsAmount()
+
 	return nil
 }
 

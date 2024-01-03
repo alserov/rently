@@ -11,6 +11,8 @@ type ServiceConverter interface {
 }
 
 type ToRepo interface {
+	UpdateCarPriceToRepo(req models.UpdateCarPriceReq) repo.UpdateCarPriceReq
+	CarToRepo(req models.Car) repo.Car
 	ParamsToRepo(req models.CarParams) repo.CarParams
 	PeriodToRepo(req models.Period) repo.Period
 	CreateRentToRepo(req models.CreateRentReq) repo.CreateRentReq
@@ -28,6 +30,25 @@ func NewServiceConverter() ServiceConverter {
 }
 
 type serviceConverter struct {
+}
+
+func (s serviceConverter) UpdateCarPriceToRepo(req models.UpdateCarPriceReq) repo.UpdateCarPriceReq {
+	return repo.UpdateCarPriceReq{
+		Price:   req.Price,
+		CarUUID: req.CarUUID,
+	}
+}
+
+func (s serviceConverter) CarToRepo(req models.Car) repo.Car {
+	return repo.Car{
+		Brand:       req.Brand,
+		Type:        req.Type,
+		MaxSpeed:    req.MaxSpeed,
+		Seats:       req.Seats,
+		Category:    req.Category,
+		PricePerDay: req.PricePerDay,
+		UUID:        req.UUID,
+	}
 }
 
 func (s serviceConverter) CheckIfCarAvailableToRepo(req models.CreateRentReq) repo.CheckIfCarAvailable {

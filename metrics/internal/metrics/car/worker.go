@@ -4,10 +4,11 @@ import (
 	"context"
 	"github.com/alserov/rently/metrics/internal/metrics"
 	"github.com/prometheus/client_golang/prometheus"
+	"log/slog"
 )
 
-func NewWorker(brokerAddr string, gaugeTopics *GaugeTopics) (metrics.Worker, []prometheus.Collector) {
-	gauge := NewGaugeMetric(brokerAddr, gaugeTopics)
+func NewWorker(brokerAddr string, gaugeTopics *GaugeTopics, log *slog.Logger) (metrics.Worker, []prometheus.Collector) {
+	gauge := NewGaugeMetric(brokerAddr, gaugeTopics, log)
 
 	return &worker{
 		gauge:      gauge,

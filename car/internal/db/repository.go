@@ -8,6 +8,13 @@ import (
 type Repository interface {
 	RentRepository
 	CarRepository
+	AdminRepository
+}
+
+type AdminRepository interface {
+	CreateCar(ctx context.Context, car models.Car) error
+	DeleteCar(ctx context.Context, uuid string) error
+	UpdateCarPrice(ctx context.Context, req models.UpdateCarPriceReq) error
 }
 
 type CarRepository interface {

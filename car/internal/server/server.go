@@ -60,7 +60,7 @@ func (s *server) CheckRent(ctx context.Context, req *car.CheckRentReq) (*car.Che
 
 	rent, err := s.service.CheckRent(ctx, req.RentUUID)
 	if err != nil {
-
+		return nil, err
 	}
 
 	return s.convert.CheckRentToPb(rent), nil

@@ -29,6 +29,9 @@ type CarsClient interface {
 	GetAvailableCars(ctx context.Context, in *GetAvailableCarsReq, opts ...grpc.CallOption) (*GetCarsRes, error)
 	GetCarsByParams(ctx context.Context, in *GetCarsByParamsReq, opts ...grpc.CallOption) (*GetCarsRes, error)
 	GetCarByUUID(ctx context.Context, in *GetCarByUUIDReq, opts ...grpc.CallOption) (*Car, error)
+	CreateCar(ctx context.Context, in *CreateCarReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DeleteCar(ctx context.Context, in *DeleteCarReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	UpdateCarPrice(ctx context.Context, in *UpdateCarPriceReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type carsClient struct {
@@ -93,6 +96,33 @@ func (c *carsClient) GetCarByUUID(ctx context.Context, in *GetCarByUUIDReq, opts
 	return out, nil
 }
 
+func (c *carsClient) CreateCar(ctx context.Context, in *CreateCarReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/car.Cars/CreateCar", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *carsClient) DeleteCar(ctx context.Context, in *DeleteCarReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/car.Cars/DeleteCar", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *carsClient) UpdateCarPrice(ctx context.Context, in *UpdateCarPriceReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/car.Cars/UpdateCarPrice", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CarsServer is the server API for Cars service.
 // All implementations must embed UnimplementedCarsServer
 // for forward compatibility
@@ -103,6 +133,9 @@ type CarsServer interface {
 	GetAvailableCars(context.Context, *GetAvailableCarsReq) (*GetCarsRes, error)
 	GetCarsByParams(context.Context, *GetCarsByParamsReq) (*GetCarsRes, error)
 	GetCarByUUID(context.Context, *GetCarByUUIDReq) (*Car, error)
+	CreateCar(context.Context, *CreateCarReq) (*emptypb.Empty, error)
+	DeleteCar(context.Context, *DeleteCarReq) (*emptypb.Empty, error)
+	UpdateCarPrice(context.Context, *UpdateCarPriceReq) (*emptypb.Empty, error)
 	mustEmbedUnimplementedCarsServer()
 }
 
@@ -127,6 +160,15 @@ func (UnimplementedCarsServer) GetCarsByParams(context.Context, *GetCarsByParams
 }
 func (UnimplementedCarsServer) GetCarByUUID(context.Context, *GetCarByUUIDReq) (*Car, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCarByUUID not implemented")
+}
+func (UnimplementedCarsServer) CreateCar(context.Context, *CreateCarReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateCar not implemented")
+}
+func (UnimplementedCarsServer) DeleteCar(context.Context, *DeleteCarReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteCar not implemented")
+}
+func (UnimplementedCarsServer) UpdateCarPrice(context.Context, *UpdateCarPriceReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateCarPrice not implemented")
 }
 func (UnimplementedCarsServer) mustEmbedUnimplementedCarsServer() {}
 
@@ -249,6 +291,60 @@ func _Cars_GetCarByUUID_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Cars_CreateCar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateCarReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CarsServer).CreateCar(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/car.Cars/CreateCar",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CarsServer).CreateCar(ctx, req.(*CreateCarReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Cars_DeleteCar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteCarReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CarsServer).DeleteCar(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/car.Cars/DeleteCar",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CarsServer).DeleteCar(ctx, req.(*DeleteCarReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Cars_UpdateCarPrice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateCarPriceReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CarsServer).UpdateCarPrice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/car.Cars/UpdateCarPrice",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CarsServer).UpdateCarPrice(ctx, req.(*UpdateCarPriceReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Cars_ServiceDesc is the grpc.ServiceDesc for Cars service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -279,6 +375,18 @@ var Cars_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCarByUUID",
 			Handler:    _Cars_GetCarByUUID_Handler,
+		},
+		{
+			MethodName: "CreateCar",
+			Handler:    _Cars_CreateCar_Handler,
+		},
+		{
+			MethodName: "DeleteCar",
+			Handler:    _Cars_DeleteCar_Handler,
+		},
+		{
+			MethodName: "UpdateCarPrice",
+			Handler:    _Cars_UpdateCarPrice_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

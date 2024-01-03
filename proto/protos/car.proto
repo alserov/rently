@@ -13,8 +13,29 @@ service Cars {
 
   rpc GetAvailableCars(GetAvailableCarsReq) returns (GetCarsRes);
   rpc GetCarsByParams(GetCarsByParamsReq) returns (GetCarsRes);
-
   rpc GetCarByUUID(GetCarByUUIDReq) returns (Car);
+
+  rpc CreateCar(CreateCarReq) returns (google.protobuf.Empty);
+  rpc DeleteCar(DeleteCarReq) returns (google.protobuf.Empty);
+  rpc UpdateCarPrice(UpdateCarPriceReq) returns (google.protobuf.Empty);
+}
+
+message UpdateCarPriceReq {
+  string CarUUID = 1;
+  float PricePerDay = 2;
+}
+
+message DeleteCarReq {
+  string CarUUID = 1;
+}
+
+message CreateCarReq {
+  string Brand = 1;
+  string Type = 2;
+  int32 MaxSpeed = 3;
+  int32 Seats = 4;
+  string Category = 5;
+  float PricePerDay = 6;
 }
 
 message CreateRentReq {

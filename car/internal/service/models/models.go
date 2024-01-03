@@ -66,3 +66,8 @@ type CarParams struct {
 	Category    string
 	PricePerDay float32
 }
+
+type UpdateCarPriceReq struct {
+	CarUUID string
+	Price   float32
+}

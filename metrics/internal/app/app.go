@@ -3,11 +3,11 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/alserov/rently/metrics/internal/broker"
 	"github.com/alserov/rently/metrics/internal/config"
 	"github.com/alserov/rently/metrics/internal/log"
 	"github.com/alserov/rently/metrics/internal/metrics"
 	"github.com/alserov/rently/metrics/internal/metrics/car"
+	"github.com/alserov/rently/metrics/internal/utils/broker"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log/slog"
