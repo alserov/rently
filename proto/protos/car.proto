@@ -80,7 +80,7 @@ message Car {
   string Category = 5;
   float PricePerDay = 6;
   string UUID = 7;
-  repeated bytes Images = 8;
+  repeated string Images = 8;
 }
 
 message GetAvailableCarsReq {
