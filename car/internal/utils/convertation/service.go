@@ -12,7 +12,7 @@ type ServiceConverter interface {
 
 type ToRepo interface {
 	UpdateCarPriceToRepo(req models.UpdateCarPriceReq) repo.UpdateCarPriceReq
-	CarToRepo(req models.Car) repo.Car
+	CarToRepo(req models.Car[[]byte]) repo.Car
 	ParamsToRepo(req models.CarParams) repo.CarParams
 	PeriodToRepo(req models.Period) repo.Period
 	CreateRentToRepo(req models.CreateRentReq) repo.CreateRentReq
@@ -20,9 +20,10 @@ type ToRepo interface {
 }
 
 type RepoToService interface {
+	CarToCarWithImages(res repo.Car, links []string) models.Car[string]
 	CheckRentToService(res repo.Rent) models.Rent
-	CarsToService(res []repo.Car) []models.Car
-	CarToService(res repo.Car) models.Car
+	CarsToService(res []repo.Car) []models.Car[string]
+	CarToService(res repo.Car) models.Car[string]
 }
 
 func NewServiceConverter() ServiceConverter {
@@ -32,6 +33,19 @@ func NewServiceConverter() ServiceConverter {
 type serviceConverter struct {
 }
 
+func (s serviceConverter) CarToCarWithImages(res repo.Car, images []string) models.Car[string] {
+	return models.Car[string]{
+		Brand:       res.Brand,
+		Type:        res.Type,
+		MaxSpeed:    res.MaxSpeed,
+		Seats:       res.Seats,
+		Category:    res.Category,
+		PricePerDay: res.PricePerDay,
+		UUID:        res.UUID,
+		Images:      images,
+	}
+}
+
 func (s serviceConverter) UpdateCarPriceToRepo(req models.UpdateCarPriceReq) repo.UpdateCarPriceReq {
 	return repo.UpdateCarPriceReq{
 		Price:   req.Price,
@@ -39,7 +53,7 @@ func (s serviceConverter) UpdateCarPriceToRepo(req models.UpdateCarPriceReq) rep
 	}
 }
 
-func (s serviceConverter) CarToRepo(req models.Car) repo.Car {
+func (s serviceConverter) CarToRepo(req models.Car[[]byte]) repo.Car {
 	return repo.Car{
 		Brand:       req.Brand,
 		Type:        req.Type,
@@ -70,8 +84,8 @@ func (s serviceConverter) ParamsToRepo(req models.CarParams) repo.CarParams {
 	}
 }
 
-func (s serviceConverter) CarToService(res repo.Car) models.Car {
-	return models.Car{
+func (s serviceConverter) CarToService(res repo.Car) models.Car[string] {
+	return models.Car[string]{
 		Brand:       res.Brand,
 		Type:        res.Type,
 		MaxSpeed:    res.MaxSpeed,
@@ -82,11 +96,11 @@ func (s serviceConverter) CarToService(res repo.Car) models.Car {
 	}
 }
 
-func (s serviceConverter) CarsToService(res []repo.Car) []models.Car {
-	var cars []models.Car
+func (s serviceConverter) CarsToService(res []repo.Car) []models.Car[string] {
+	var cars []models.Car[string]
 
 	for _, c := range res {
-		car := models.Car{
+		car := models.Car[string]{
 			Brand:       c.Brand,
 			Type:        c.Type,
 			MaxSpeed:    c.MaxSpeed,

@@ -11,7 +11,7 @@ func MustConnect(dsn string) *sqlx.DB {
 		panic("failed to open db: " + err.Error())
 	}
 
-	if err := conn.Ping(); err != nil {
+	if err = conn.Ping(); err != nil {
 		panic("failed to ping db: " + err.Error())
 	}
 

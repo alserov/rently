@@ -4,7 +4,7 @@ go 1.21.0
 
 require (
 	github.com/IBM/sarama v1.42.1
-	github.com/alserov/rently/proto v0.0.0-20240103171157-99e8ea485b82
+	github.com/alserov/rently/proto v0.0.0-20240104132636-89285e6deb96
 	github.com/golang-migrate/migrate/v4 v4.17.0
 	github.com/google/uuid v1.5.0
 	github.com/jmoiron/sqlx v1.3.5

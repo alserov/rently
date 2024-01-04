@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/alserov/rently/car/internal/db"
+	repo "github.com/alserov/rently/car/internal/db/models"
 	"github.com/alserov/rently/car/internal/metrics"
 	"github.com/alserov/rently/car/internal/service/models"
 	"github.com/alserov/rently/car/internal/utils/convertation"
@@ -20,15 +21,15 @@ type Service interface {
 }
 
 type AdminActions interface {
-	CreateCar(ctx context.Context, car models.Car) error
+	CreateCar(ctx context.Context, car models.Car[[]byte]) error
 	DeleteCar(ctx context.Context, uuid string) error
 	UpdateCarPrice(ctx context.Context, req models.UpdateCarPriceReq) error
 }
 
 type CarActions interface {
-	GetCarByUUID(ctx context.Context, uuid string) (car models.Car, err error)
-	GetCarsByParams(ctx context.Context, params models.CarParams) (cars []models.Car, err error)
-	GetAvailableCars(ctx context.Context, period models.Period) (cars []models.Car, err error)
+	GetCarByUUID(ctx context.Context, uuid string) (car models.Car[string], err error)
+	GetCarsByParams(ctx context.Context, params models.CarParams) (cars []models.Car[string], err error)
+	GetAvailableCars(ctx context.Context, period models.Period) (cars []models.Car[string], err error)
 }
 
 type RentActions interface {
@@ -37,7 +38,7 @@ type RentActions interface {
 	CheckRent(ctx context.Context, rentUUID string) (res models.Rent, err error)
 }
 
-const imagesFolder = "images"
+const imagesFolder = "internal/images"
 
 func NewService(repo db.Repository, metrics metrics.Metrics, log *slog.Logger) Service {
 	return &service{
@@ -64,7 +65,7 @@ type service struct {
 	files files.Filer
 }
 
-func (s *service) CreateCar(ctx context.Context, car models.Car) error {
+func (s *service) CreateCar(ctx context.Context, car models.Car[[]byte]) error {
 	car.UUID = uuid.New().String()
 
 	var (
@@ -129,16 +130,16 @@ func (s *service) UpdateCarPrice(ctx context.Context, req models.UpdateCarPriceR
 	return nil
 }
 
-func (s *service) GetCarByUUID(ctx context.Context, uuid string) (models.Car, error) {
+func (s *service) GetCarByUUID(ctx context.Context, uuid string) (models.Car[string], error) {
 	car, err := s.repo.GetCarByUUID(ctx, uuid)
 	if err != nil {
-		return models.Car{}, err
+		return models.Car[string]{}, err
 	}
 
 	return s.convert.CarToService(car), nil
 }
 
-func (s *service) GetCarsByParams(ctx context.Context, params models.CarParams) ([]models.Car, error) {
+func (s *service) GetCarsByParams(ctx context.Context, params models.CarParams) ([]models.Car[string], error) {
 	cars, err := s.repo.GetCarsByParams(ctx, s.convert.ParamsToRepo(params))
 	if err != nil {
 		return nil, err
@@ -149,13 +150,48 @@ func (s *service) GetCarsByParams(ctx context.Context, params models.CarParams) 
 	return s.convert.CarsToService(cars), nil
 }
 
-func (s *service) GetAvailableCars(ctx context.Context, period models.Period) (availableCars []models.Car, err error) {
+func (s *service) GetAvailableCars(ctx context.Context, period models.Period) ([]models.Car[string], error) {
 	cars, err := s.repo.GetAvailableCars(ctx, s.convert.PeriodToRepo(period))
 	if err != nil {
 		return nil, err
 	}
 
-	return s.convert.CarsToService(cars), nil
+	var (
+		mu            = sync.Mutex{}
+		wg            = sync.WaitGroup{}
+		chErr         = make(chan error, len(cars))
+		availableCars = make([]models.Car[string], 0, len(cars))
+	)
+
+	wg.Add(len(cars))
+
+	for _, car := range cars {
+		go func(car repo.Car, wg *sync.WaitGroup) {
+			defer wg.Done()
+
+			imageLinks, err := s.files.GetLinks(car.UUID)
+			if err != nil {
+				chErr <- err
+			}
+
+			c := s.convert.CarToCarWithImages(car, imageLinks)
+
+			mu.Lock()
+			defer mu.Unlock()
+			availableCars = append(availableCars, c)
+		}(car, &wg)
+	}
+
+	go func() {
+		wg.Wait()
+		close(chErr)
+	}()
+
+	if err = <-chErr; err != nil {
+		s.log.Error("failed to get image", slog.String("error", err.Error()))
+	}
+
+	return availableCars, nil
 }
 
 func (s *service) CancelRent(ctx context.Context, rentUUID string) error {

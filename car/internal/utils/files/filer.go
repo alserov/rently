@@ -1,9 +1,8 @@
 package files
 
 import (
-	"bytes"
 	"fmt"
-	"image"
+	"io/ioutil"
 	"os"
 )
 
@@ -11,7 +10,8 @@ type Filer interface {
 	Save(file []byte, uuid string, idx int) error
 	Delete(uuid string) error
 
-	GetImage(uuid string, idx int) (image.Image, error)
+	GetLinks(uuid string) ([]string, error)
+	GetImage(link string) ([]byte, error)
 }
 
 func NewFiler(relativeDir string) Filer {
@@ -20,6 +20,22 @@ func NewFiler(relativeDir string) Filer {
 
 type filer struct {
 	relativeDir string
+}
+
+func (flr filer) GetLinks(uuid string) ([]string, error) {
+	dir := fmt.Sprintf("%s/%s", flr.relativeDir, uuid)
+
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read images dir: %v", err)
+	}
+
+	var links []string
+	for _, f := range files {
+		links = append(links, fmt.Sprintf("images?uuid=%s&idx=%s", uuid, f.Name()[:len(f.Name())-4]))
+	}
+
+	return links, nil
 }
 
 func (flr filer) Delete(uuid string) error {
@@ -49,7 +65,7 @@ func (flr filer) Save(file []byte, uuid string, idx int) error {
 		return fmt.Errorf("failed to make dir: %v", err)
 	}
 
-	f, err := os.OpenFile(fmt.Sprintf("%s%d", dir, idx), os.O_CREATE, 0644)
+	f, err := os.OpenFile(fmt.Sprintf("%s%d.bin", dir, idx), os.O_CREATE, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to open file: %v", err)
 	}
@@ -63,14 +79,14 @@ func (flr filer) Save(file []byte, uuid string, idx int) error {
 	return nil
 }
 
-func (flr filer) GetImage(uuid string, idx int) (image.Image, error) {
-	dir := fmt.Sprintf("%s/%s/%d", flr.relativeDir, uuid, idx)
+func (flr filer) GetImage(link string) ([]byte, error) {
+	file := fmt.Sprintf("%s/%s", flr.relativeDir, link)
 
-	b, err := os.ReadFile(dir)
+	b, err := os.ReadFile(file)
 	if err != nil {
+
 		return nil, fmt.Errorf("failed to get image: %v", err)
 	}
 
-	img, _, err := image.Decode(bytes.NewReader(b))
-	return img, nil
+	return b, nil
 }

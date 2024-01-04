@@ -32,7 +32,7 @@ func TestService_DeleteCar(t *testing.T) {
 	s := NewService(repo, nil, nil)
 
 	err := os.MkdirAll("images/uuid", 0644)
-	f, err := os.OpenFile("images/uuid/0", os.O_CREATE, 0644)
+	f, err := os.OpenFile("images/uuid/0.txt", os.O_CREATE, 0644)
 	require.NoError(t, err)
 	defer os.RemoveAll("images")
 
@@ -56,7 +56,7 @@ func TestService_DeleteCar_with_repo_error(t *testing.T) {
 	s := NewService(repo, nil, nil)
 
 	err := os.MkdirAll("images/uuid", 0644)
-	f, err := os.OpenFile("images/uuid/0", os.O_CREATE, 0644)
+	f, err := os.OpenFile("images/uuid/0.txt", os.O_CREATE, 0644)
 	require.NoError(t, err)
 	defer os.RemoveAll("images")
 
@@ -80,7 +80,7 @@ func TestService_DeleteCar_with_file_error(t *testing.T) {
 	s := NewService(repo, nil, nil)
 
 	err := os.MkdirAll("images/uuid", 0644)
-	f, err := os.OpenFile("images/uuid/0", os.O_CREATE, 0644)
+	f, err := os.OpenFile("images/uuid/0.txt", os.O_CREATE, 0644)
 	require.NoError(t, err)
 	defer os.RemoveAll("images")
 

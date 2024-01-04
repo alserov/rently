@@ -38,13 +38,13 @@ type CheckIfCarAvailable struct {
 // ============================================
 
 type Car struct {
-	Brand       string
-	Type        string
-	MaxSpeed    int32
-	Seats       int32
-	Category    string
-	PricePerDay float32
-	UUID        string
+	Brand       string  `db:"brand"`
+	Type        string  `db:"type"`
+	MaxSpeed    int32   `db:"max_speed"`
+	Seats       int32   `db:"seats"`
+	Category    string  `db:"category"`
+	PricePerDay float32 `db:"price_per_day"`
+	UUID        string  `db:"uuid"`
 }
 
 type Period struct {

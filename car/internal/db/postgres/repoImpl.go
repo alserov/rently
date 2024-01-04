@@ -165,26 +165,6 @@ func (r *repository) GetAvailableCars(ctx context.Context, period models.Period)
 	return cars, nil
 }
 
-func (r *repository) CancelRentTx(ctx context.Context, rentUUID string) (models.CancelRentInfo, error) {
-	query := `DELETE FROM rents WHERE rent_uuid = $1 RETURNING charge_id, rent_price`
-
-	tx, err := r.db.Beginx()
-	if err != nil {
-		return models.CancelRentInfo{}, status.Error(codes.Internal, fmt.Sprintf("failed to start tx: %v", err))
-	}
-
-	var rentInfo models.CancelRentInfo
-	err = tx.QueryRow(query, rentUUID).Scan(&rentInfo)
-	if errors.Is(err, sql.ErrNoRows) {
-		return models.CancelRentInfo{}, status.Error(codes.NotFound, fmt.Sprintf("%s by car uuid: %s", ERR_NO_ROWS, rentUUID))
-	}
-	if err != nil {
-		return models.CancelRentInfo{}, status.Error(codes.Internal, err.Error())
-	}
-
-	return rentInfo, nil
-}
-
 func (r *repository) CheckRent(_ context.Context, rentUUID string) (rent models.Rent, err error) {
 	query := "SELECT * FROM rents WHERE rent_uuid = $1"
 

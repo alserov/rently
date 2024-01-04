@@ -36,7 +36,7 @@ const (
 	ERR_INVALID_CARD_NUMBER   = "invalid card number"
 	ERR_INVALID_SPEED         = "invalid speed"
 	ERR_INVALID_SEATS_AMOUNT  = "invalid seats amount"
-	ERR_INVALID_PRICE_PER_DAY = "price can not be less or equal to 0"
+	ERR_INVALID_PRICE_PER_DAY = "price can not be less or equal to 0.txt"
 	ERR_INVALID_IMAGES_AMOUNT = "the car should have at least one image"
 )
 
@@ -121,7 +121,7 @@ func (v *validator) ValidateGetCarByUUID(req *car.GetCarByUUIDReq) error {
 }
 
 func (v *validator) ValidateGetAvailableCarsReq(req *car.GetAvailableCarsReq) error {
-	if req.GetTo().AsTime().Unix() >= req.GetFrom().AsTime().Unix() {
+	if req.GetStart().AsTime().Before(req.GetEnd().AsTime()) {
 		return status.Error(codes.InvalidArgument, "rent end can not be earlier than rent start")
 	}
 

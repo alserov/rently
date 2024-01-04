@@ -34,7 +34,7 @@ func NewApp(cfg *config.Config) *App {
 	return &App{
 		port: cfg.Port,
 
-		dsn: fmt.Sprintf("postgres://%s:%s@%s:5432/%s", cfg.DB.Name, cfg.DB.Password, cfg.DB.Host, cfg.DB.Name),
+		dsn: fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", cfg.DB.Name, cfg.DB.Password, cfg.DB.Host, cfg.DB.Port, cfg.DB.Name),
 
 		broker: broker.Broker{
 			Addr: cfg.Broker.Addr,
@@ -52,12 +52,12 @@ func NewApp(cfg *config.Config) *App {
 }
 
 func (a *App) MustStart() {
-	defer func() {
-		err := recover()
-		if err != nil {
-			a.log.Error("panic recovery: ", err)
-		}
-	}()
+	//defer func() {
+	//	err := recover()
+	//	if err != nil {
+	//		a.log.Error("panic recovery: ", err)
+	//	}
+	//}()
 
 	a.log.Info("starting app", slog.Int("port", a.port))
 
@@ -89,6 +89,7 @@ func (a *App) run(l net.Listener) {
 		}
 	}()
 
+	a.log.Info("app is running")
 	sign := <-chStop
 	a.gRPCServer.GracefulStop()
 	a.log.Info("app was stopped", slog.String("signal", sign.String()))

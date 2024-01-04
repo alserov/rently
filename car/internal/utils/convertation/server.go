@@ -13,7 +13,7 @@ type ServerConverter interface {
 }
 
 type PbToService interface {
-	CreateCarReqToService(req *car.CreateCarReq) models.Car
+	CreateCarReqToService(req *car.CreateCarReq) models.Car[[]byte]
 	CreateRentReqToService(req *car.CreateRentReq) models.CreateRentReq
 
 	GetCarsByParamsReqToService(req *car.GetCarsByParamsReq) models.CarParams
@@ -25,8 +25,8 @@ type PbToService interface {
 type ToPb interface {
 	CreateRentToPb(res models.CreateRentRes) *car.CreateRentRes
 	CheckRentToPb(res models.Rent) *car.CheckRentRes
-	CarsToPb(res []models.Car) *car.GetCarsRes
-	CarToPb(res models.Car) *car.Car
+	CarsToPb(res []models.Car[string]) *car.GetCarsRes
+	CarToPb(res models.Car[string]) *car.Car
 }
 
 func NewServerConverter() ServerConverter {
@@ -43,8 +43,8 @@ func (s *serverConverter) UpdateCarPriceReqToService(req *car.UpdateCarPriceReq)
 	}
 }
 
-func (s *serverConverter) CreateCarReqToService(req *car.CreateCarReq) models.Car {
-	return models.Car{
+func (s *serverConverter) CreateCarReqToService(req *car.CreateCarReq) models.Car[[]byte] {
+	return models.Car[[]byte]{
 		Images:      req.Images,
 		Brand:       req.Brand,
 		Type:        req.Type,
@@ -73,7 +73,7 @@ func (s *serverConverter) GetCarsByParamsReqToService(req *car.GetCarsByParamsRe
 	}
 }
 
-func (s *serverConverter) CarToPb(res models.Car) *car.Car {
+func (s *serverConverter) CarToPb(res models.Car[string]) *car.Car {
 	return &car.Car{
 		Brand:       res.Brand,
 		Type:        res.Type,
@@ -85,8 +85,8 @@ func (s *serverConverter) CarToPb(res models.Car) *car.Car {
 	}
 }
 
-func (s *serverConverter) CarsToPb(res []models.Car) *car.GetCarsRes {
-	var cars *car.GetCarsRes
+func (s *serverConverter) CarsToPb(res []models.Car[string]) *car.GetCarsRes {
+	var cars car.GetCarsRes
 
 	for _, c := range res {
 		car := &car.Car{
@@ -97,16 +97,17 @@ func (s *serverConverter) CarsToPb(res []models.Car) *car.GetCarsRes {
 			Category:    c.Category,
 			PricePerDay: c.PricePerDay,
 			UUID:        c.UUID,
+			Images:      c.Images,
 		}
 		cars.Cars = append(cars.Cars, car)
 	}
 
-	return cars
+	return &cars
 }
 
 func (s *serverConverter) GetAvailableCarsReqToService(req *car.GetAvailableCarsReq) models.Period {
-	from := req.From.AsTime()
-	to := req.To.AsTime()
+	from := req.Start.AsTime()
+	to := req.End.AsTime()
 	return models.Period{
 		Start: &from,
 		End:   &to,
@@ -130,6 +131,7 @@ func (s *serverConverter) CreateRentReqToService(req *car.CreateRentReq) models.
 		CarUUID:        req.CarUUID,
 		PhoneNumber:    req.PhoneNumber,
 		PassportNumber: req.PassportNumber,
+		PaymentSource:  req.PaymentSource,
 		RentStart:      &start,
 		RentEnd:        &end,
 	}

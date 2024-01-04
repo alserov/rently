@@ -45,8 +45,8 @@ type CheckRentReq struct {
 
 // ============================================
 
-type Car struct {
-	Images      [][]byte
+type Car[T any] struct {
+	Images      []T
 	Brand       string
 	Type        string
 	MaxSpeed    int32
