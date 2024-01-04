@@ -84,8 +84,8 @@ message Car {
 }
 
 message GetAvailableCarsReq {
-  google.protobuf.Timestamp From = 1;
-  google.protobuf.Timestamp To = 2;
+  google.protobuf.Timestamp Start = 1;
+  google.protobuf.Timestamp End = 2;
 }
 
 message GetCarsRes {
