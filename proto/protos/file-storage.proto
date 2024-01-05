@@ -1,0 +1,26 @@
+syntax="proto3";
+
+option go_package = "github.com/alserov/rently/proto/gen/file-storage";
+
+package fstorage;
+
+service FileStorage {
+  rpc GetLinks(GetLinksReq) returns(GetLinksRes);
+  rpc GetImage(GetImageReq) returns(GetLinksRes);
+}
+
+message GetImageRes {
+  bytes Image = 1;
+}
+
+message GetImageReq {
+  string Link = 1;
+}
+
+message GetLinksRes {
+  repeated string Links = 1;
+}
+
+message GetLinksReq {
+  string UUID = 1;
+}
