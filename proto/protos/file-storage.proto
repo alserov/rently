@@ -6,7 +6,7 @@ package fstorage;
 
 service FileStorage {
   rpc GetLinks(GetLinksReq) returns(GetLinksRes);
-  rpc GetImage(GetImageReq) returns(GetLinksRes);
+  rpc GetImage(GetImageReq) returns(GetImageRes);
 }
 
 message GetImageRes {

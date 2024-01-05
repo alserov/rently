@@ -3,16 +3,19 @@ package server
 import (
 	"context"
 	"github.com/alserov/rently/car/internal/service"
+	"github.com/alserov/rently/car/internal/utils/clients"
 	"github.com/alserov/rently/car/internal/utils/convertation"
 	"github.com/alserov/rently/car/internal/utils/validation"
 	"github.com/alserov/rently/proto/gen/car"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"log/slog"
 )
 
-func RegisterGRPCServer(gRPCServer *grpc.Server, service service.Service) {
+func RegisterGRPCServer(gRPCServer *grpc.Server, service service.Service, clients *clients.Clients) {
 	car.RegisterCarsServer(gRPCServer, &server{
 		service:    service,
+		clients:    clients,
 		validation: validation.NewValidator(),
 		convert:    convertation.NewServerConverter(),
 	})
@@ -21,7 +24,11 @@ func RegisterGRPCServer(gRPCServer *grpc.Server, service service.Service) {
 type server struct {
 	car.UnimplementedCarsServer
 
+	log *slog.Logger
+
 	service service.Service
+
+	clients *clients.Clients
 
 	validation validation.Validator
 
@@ -110,6 +117,12 @@ func (s *server) GetAvailableCars(ctx context.Context, req *car.GetAvailableCars
 	cars, err := s.service.GetAvailableCars(ctx, s.convert.GetAvailableCarsReqToService(req))
 	if err != nil {
 		return nil, err
+	}
+
+	// TODO: fetch images for each car
+
+	if err = <-chErr; err != nil {
+		return nil, handleError(err, s.log)
 	}
 
 	return s.convert.CarsToPb(cars), nil

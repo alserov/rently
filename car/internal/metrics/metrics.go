@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"github.com/IBM/sarama"
+	"github.com/alserov/rently/car/internal/utils/broker"
 	"log/slog"
 )
 
@@ -14,14 +15,7 @@ type Metrics interface {
 	NotifyBrandDemand(brand string) // what brand is the most popular
 }
 
-type MetricTopics struct {
-	DecreaseActiveRentsAmount string
-	IncreaseActiveRentsAmount string
-	IncreaseRentsCancel       string
-	NotifyBrandDemand         string
-}
-
-func NewMetrics(producer sarama.SyncProducer, topics MetricTopics, log *slog.Logger) Metrics {
+func NewMetrics(producer sarama.SyncProducer, topics broker.MetricTopics, log *slog.Logger) Metrics {
 	return &metrics{
 		log:    log,
 		p:      producer,
@@ -34,7 +28,7 @@ type metrics struct {
 
 	p sarama.SyncProducer
 
-	topics MetricTopics
+	topics broker.MetricTopics
 }
 
 func (m *metrics) IncreaseRentsCancel() {

@@ -2,14 +2,15 @@ package app
 
 import (
 	"fmt"
-	"github.com/alserov/rently/car/internal/utils/broker"
+	"github.com/alserov/rently/car/internal/utils/clients"
 
 	"github.com/alserov/rently/car/internal/config"
 	"github.com/alserov/rently/car/internal/db/postgres"
-	"github.com/alserov/rently/car/internal/log"
 	mtrcs "github.com/alserov/rently/car/internal/metrics"
 	"github.com/alserov/rently/car/internal/server"
 	"github.com/alserov/rently/car/internal/service"
+	"github.com/alserov/rently/car/internal/utils/broker"
+	"github.com/alserov/rently/car/internal/utils/log"
 
 	"google.golang.org/grpc"
 	"log/slog"
@@ -38,11 +39,17 @@ func NewApp(cfg *config.Config) *App {
 
 		broker: broker.Broker{
 			Addr: cfg.Broker.Addr,
-			Metrics: mtrcs.MetricTopics{
-				DecreaseActiveRentsAmount: cfg.Broker.Metrics.Topics.DecreaseActiveRentsAmount,
-				IncreaseActiveRentsAmount: cfg.Broker.Metrics.Topics.IncreaseActiveRentsAmount,
-				IncreaseRentsCancel:       cfg.Broker.Metrics.Topics.IncreaseRentsCancel,
-				NotifyBrandDemand:         cfg.Broker.Metrics.Topics.NotifyBrandDemand,
+			Topics: broker.Topics{
+				Metrics: broker.MetricTopics{
+					DecreaseActiveRentsAmount: cfg.Broker.Topics.Metrics.DecreaseActiveRentsAmount,
+					IncreaseActiveRentsAmount: cfg.Broker.Topics.Metrics.IncreaseActiveRentsAmount,
+					IncreaseRentsCancel:       cfg.Broker.Topics.Metrics.IncreaseRentsCancel,
+					NotifyBrandDemand:         cfg.Broker.Topics.Metrics.NotifyBrandDemand,
+				},
+				Images: broker.ImageTopics{
+					Save:   cfg.Broker.Topics.Files.Save,
+					Delete: cfg.Broker.Topics.Files.Delete,
+				},
 			},
 		},
 
@@ -65,11 +72,14 @@ func (a *App) MustStart() {
 	repo := postgres.NewRepo(db)
 
 	producer := broker.NewProducer(a.broker.Addr)
-	metr := mtrcs.NewMetrics(producer, a.broker.Metrics, a.log)
+	metr := mtrcs.NewMetrics(producer, a.broker.Topics.Metrics, a.log)
 
 	serv := service.NewService(repo, metr, a.log)
 
-	server.RegisterGRPCServer(a.gRPCServer, serv)
+	cls, conn, closeConn := clients.SetupClients(clients.ClientAddresses{})
+	defer closeConn(conn)
+
+	server.RegisterGRPCServer(a.gRPCServer, serv, cls)
 
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", a.port))
 	if err != nil {

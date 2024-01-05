@@ -24,15 +24,19 @@ type Postgres struct {
 }
 
 type Broker struct {
-	Addr    string `yaml:"addr"`
-	Metrics struct {
-		Topics struct {
+	Addr   string `yaml:"addr"`
+	Topics struct {
+		Metrics struct {
 			DecreaseActiveRentsAmount string `yaml:"decreaseActiveRentsAmount"`
 			IncreaseActiveRentsAmount string `yaml:"increaseActiveRentsAmount"`
 			IncreaseRentsCancel       string `yaml:"increaseRentsCancel"`
 			NotifyBrandDemand         string `yaml:"notifyBrandDemand"`
-		} `yaml:"topics"`
-	} `yaml:"metrics"`
+		} `yaml:"metrics"`
+		Files struct {
+			Save   string `yaml:"save"`
+			Delete string `yaml:"delete"`
+		}
+	} `yaml:"topics"`
 }
 
 func MustLoad() *Config {

@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type FileStorageClient interface {
 	GetLinks(ctx context.Context, in *GetLinksReq, opts ...grpc.CallOption) (*GetLinksRes, error)
-	GetImage(ctx context.Context, in *GetImageReq, opts ...grpc.CallOption) (*GetLinksRes, error)
+	GetImage(ctx context.Context, in *GetImageReq, opts ...grpc.CallOption) (*GetImageRes, error)
 }
 
 type fileStorageClient struct {
@@ -43,8 +43,8 @@ func (c *fileStorageClient) GetLinks(ctx context.Context, in *GetLinksReq, opts 
 	return out, nil
 }
 
-func (c *fileStorageClient) GetImage(ctx context.Context, in *GetImageReq, opts ...grpc.CallOption) (*GetLinksRes, error) {
-	out := new(GetLinksRes)
+func (c *fileStorageClient) GetImage(ctx context.Context, in *GetImageReq, opts ...grpc.CallOption) (*GetImageRes, error) {
+	out := new(GetImageRes)
 	err := c.cc.Invoke(ctx, "/fstorage.FileStorage/GetImage", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (c *fileStorageClient) GetImage(ctx context.Context, in *GetImageReq, opts 
 // for forward compatibility
 type FileStorageServer interface {
 	GetLinks(context.Context, *GetLinksReq) (*GetLinksRes, error)
-	GetImage(context.Context, *GetImageReq) (*GetLinksRes, error)
+	GetImage(context.Context, *GetImageReq) (*GetImageRes, error)
 	mustEmbedUnimplementedFileStorageServer()
 }
 
@@ -68,7 +68,7 @@ type UnimplementedFileStorageServer struct {
 func (UnimplementedFileStorageServer) GetLinks(context.Context, *GetLinksReq) (*GetLinksRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLinks not implemented")
 }
-func (UnimplementedFileStorageServer) GetImage(context.Context, *GetImageReq) (*GetLinksRes, error) {
+func (UnimplementedFileStorageServer) GetImage(context.Context, *GetImageReq) (*GetImageRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetImage not implemented")
 }
 func (UnimplementedFileStorageServer) mustEmbedUnimplementedFileStorageServer() {}

@@ -2,13 +2,16 @@ package service
 
 import (
 	"context"
+	"encoding/json"
+	"github.com/IBM/sarama"
+
 	"github.com/alserov/rently/car/internal/db"
-	repo "github.com/alserov/rently/car/internal/db/models"
 	"github.com/alserov/rently/car/internal/metrics"
 	"github.com/alserov/rently/car/internal/service/models"
+	"github.com/alserov/rently/car/internal/utils/broker"
 	"github.com/alserov/rently/car/internal/utils/convertation"
-	"github.com/alserov/rently/car/internal/utils/files"
 	"github.com/alserov/rently/car/internal/utils/payment"
+
 	"github.com/google/uuid"
 	"log/slog"
 	"sync"
@@ -38,16 +41,25 @@ type RentActions interface {
 	CheckRent(ctx context.Context, rentUUID string) (res models.Rent, err error)
 }
 
-const imagesFolder = "internal/images"
-
 func NewService(repo db.Repository, metrics metrics.Metrics, log *slog.Logger) Service {
+	consumerConfig := sarama.NewConfig()
+
+	producerConfig := sarama.NewConfig()
+	producerConfig.Producer.Return.Errors = true
+	producerConfig.Producer.Return.Successes = true
+	producer, err := sarama.NewAsyncProducer([]string{}, producerConfig)
+	if err != nil {
+		panic("failed to init async producer: " + err.Error())
+	}
+
 	return &service{
-		log:     log,
-		repo:    repo,
-		metrics: metrics,
-		files:   files.NewFiler(imagesFolder),
-		convert: convertation.NewServiceConverter(),
-		payment: payment.NewPayer("sk_test_51OU56CDOnc0MdcTNBwddO2cn8NrEebjfuAGjBjj9xSyKmiUO4ajJ1vZ0yBoOsAMq0HjHqCmis2niwoj2EZYCDLOA00lcCUlWxh"),
+		log:            log,
+		repo:           repo,
+		metrics:        metrics,
+		convert:        convertation.NewServiceConverter(),
+		payment:        payment.NewPayer("sk_test_51OU56CDOnc0MdcTNBwddO2cn8NrEebjfuAGjBjj9xSyKmiUO4ajJ1vZ0yBoOsAMq0HjHqCmis2niwoj2EZYCDLOA00lcCUlWxh"),
+		producer:       producer,
+		consumerConfig: consumerConfig,
 	}
 }
 
@@ -62,7 +74,9 @@ type service struct {
 
 	payment payment.Payer
 
-	files files.Filer
+	consumerConfig *sarama.Config
+	producer       sarama.AsyncProducer
+	topics         broker.Topics
 }
 
 func (s *service) CreateCar(ctx context.Context, car models.Car[[]byte]) error {
@@ -78,7 +92,22 @@ func (s *service) CreateCar(ctx context.Context, car models.Car[[]byte]) error {
 	for idx, img := range car.Images {
 		go func(img []byte, idx int, wg *sync.WaitGroup) {
 			defer wg.Done()
-			err := s.files.Save(img, car.UUID, idx)
+			b, err := json.Marshal(broker.SaveImageMessage{
+				Value: img,
+				UUID:  car.UUID,
+				Idx:   idx,
+			})
+			if err != nil {
+				chErr <- err
+			}
+
+			m := &sarama.ProducerMessage{
+				Value: sarama.StringEncoder(b),
+				Topic: s.topics.Images.Save,
+			}
+
+			s.producer.Input() <- m
+
 			if err != nil {
 				chErr <- err
 			}
@@ -105,10 +134,13 @@ func (s *service) DeleteCar(ctx context.Context, uuid string) error {
 	chErr := make(chan error)
 	go func() {
 		defer close(chErr)
-		err := s.files.Delete(uuid)
-		if err != nil {
-			chErr <- err
+
+		m := &sarama.ProducerMessage{
+			Value: sarama.StringEncoder(uuid),
+			Topic: s.topics.Images.Delete,
 		}
+
+		s.producer.Input() <- m
 	}()
 
 	if err := s.repo.DeleteCar(ctx, uuid); err != nil {
@@ -156,42 +188,7 @@ func (s *service) GetAvailableCars(ctx context.Context, period models.Period) ([
 		return nil, err
 	}
 
-	var (
-		mu            = sync.Mutex{}
-		wg            = sync.WaitGroup{}
-		chErr         = make(chan error, len(cars))
-		availableCars = make([]models.Car[string], 0, len(cars))
-	)
-
-	wg.Add(len(cars))
-
-	for _, car := range cars {
-		go func(car repo.Car, wg *sync.WaitGroup) {
-			defer wg.Done()
-
-			imageLinks, err := s.files.GetLinks(car.UUID)
-			if err != nil {
-				chErr <- err
-			}
-
-			c := s.convert.CarToCarWithImages(car, imageLinks)
-
-			mu.Lock()
-			defer mu.Unlock()
-			availableCars = append(availableCars, c)
-		}(car, &wg)
-	}
-
-	go func() {
-		wg.Wait()
-		close(chErr)
-	}()
-
-	if err = <-chErr; err != nil {
-		s.log.Error("failed to get image", slog.String("error", err.Error()))
-	}
-
-	return availableCars, nil
+	return s.convert.CarsToService(cars), nil
 }
 
 func (s *service) CancelRent(ctx context.Context, rentUUID string) error {
