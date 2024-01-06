@@ -2,15 +2,20 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/alserov/rently/car/internal/models"
 	"github.com/alserov/rently/car/internal/service"
 	"github.com/alserov/rently/car/internal/utils/clients"
 	"github.com/alserov/rently/car/internal/utils/convertation"
 	"github.com/alserov/rently/car/internal/utils/validation"
 	"github.com/alserov/rently/proto/gen/car"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"log/slog"
+	"net/http"
 	"sync"
 )
 
@@ -111,7 +116,7 @@ func (s *server) CheckRent(ctx context.Context, req *car.CheckRentReq) (*car.Che
 
 	rent, err := s.service.CheckRent(ctx, req.RentUUID)
 	if err != nil {
-		return nil, err
+		return nil, handleError(err, s.log)
 	}
 
 	return s.convert.CheckRentToPb(rent), nil
@@ -183,4 +188,26 @@ func (s *server) GetCarByUUID(ctx context.Context, req *car.GetCarByUUIDReq) (*c
 	}
 
 	return s.convert.CarToPb(car), nil
+}
+
+const internalError = "internal error"
+
+func handleError(err error, log *slog.Logger) error {
+	e := &models.Error{}
+	ok := errors.As(err, &e)
+
+	if ok {
+		switch e.Code {
+		case http.StatusInternalServerError:
+			log.Error(e.Msg)
+			return status.Error(codes.Internal, internalError)
+		case http.StatusBadRequest:
+			return status.Error(codes.InvalidArgument, e.Msg)
+		case http.StatusNotFound:
+			return status.Error(codes.NotFound, e.Msg)
+		}
+	}
+
+	log.Error("unexpected error", slog.String("error", err.Error()))
+	return e
 }

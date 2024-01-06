@@ -50,20 +50,6 @@ func (mr *MockRepositoryMockRecorder) CancelRent(ctx, rentUUID interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelRent", reflect.TypeOf((*MockRepository)(nil).CancelRent), ctx, rentUUID)
 }
 
-// CheckIfCarAvailable mocks base method.
-func (m *MockRepository) CheckIfCarAvailable(ctx context.Context, req models.CheckIfCarAvailable) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckIfCarAvailable", ctx, req)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CheckIfCarAvailable indicates an expected call of CheckIfCarAvailable.
-func (mr *MockRepositoryMockRecorder) CheckIfCarAvailable(ctx, req interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckIfCarAvailable", reflect.TypeOf((*MockRepository)(nil).CheckIfCarAvailable), ctx, req)
-}
-
 // CheckRent mocks base method.
 func (m *MockRepository) CheckRent(ctx context.Context, rentUUID string) (models.Rent, error) {
 	m.ctrl.T.Helper()
@@ -149,6 +135,21 @@ func (m *MockRepository) GetCarByUUID(ctx context.Context, uuid string) (models.
 func (mr *MockRepositoryMockRecorder) GetCarByUUID(ctx, uuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCarByUUID", reflect.TypeOf((*MockRepository)(nil).GetCarByUUID), ctx, uuid)
+}
+
+// GetCarPriceIfAvailable mocks base method.
+func (m *MockRepository) PrepareCreateRent(ctx context.Context, req models.CheckIfCarAvailable) (float32, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PrepareCreateRent", ctx, req)
+	ret0, _ := ret[0].(float32)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCarPriceIfAvailable indicates an expected call of GetCarPriceIfAvailable.
+func (mr *MockRepositoryMockRecorder) GetCarPriceIfAvailable(ctx, req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrepareCreateRent", reflect.TypeOf((*MockRepository)(nil).PrepareCreateRent), ctx, req)
 }
 
 // GetCarsByParams mocks base method.
@@ -351,20 +352,6 @@ func (mr *MockRentRepositoryMockRecorder) CancelRent(ctx, rentUUID interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelRent", reflect.TypeOf((*MockRentRepository)(nil).CancelRent), ctx, rentUUID)
 }
 
-// CheckIfCarAvailable mocks base method.
-func (m *MockRentRepository) CheckIfCarAvailable(ctx context.Context, req models.CheckIfCarAvailable) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckIfCarAvailable", ctx, req)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CheckIfCarAvailable indicates an expected call of CheckIfCarAvailable.
-func (mr *MockRentRepositoryMockRecorder) CheckIfCarAvailable(ctx, req interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckIfCarAvailable", reflect.TypeOf((*MockRentRepository)(nil).CheckIfCarAvailable), ctx, req)
-}
-
 // CheckRent mocks base method.
 func (m *MockRentRepository) CheckRent(ctx context.Context, rentUUID string) (models.Rent, error) {
 	m.ctrl.T.Helper()
@@ -392,4 +379,19 @@ func (m *MockRentRepository) CreateRent(ctx context.Context, req models.CreateRe
 func (mr *MockRentRepositoryMockRecorder) CreateRent(ctx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRent", reflect.TypeOf((*MockRentRepository)(nil).CreateRent), ctx, req)
+}
+
+// GetCarPriceIfAvailable mocks base method.
+func (m *MockRentRepository) PrepareCreateRent(ctx context.Context, req models.CheckIfCarAvailable) (float32, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PrepareCreateRent", ctx, req)
+	ret0, _ := ret[0].(float32)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCarPriceIfAvailable indicates an expected call of GetCarPriceIfAvailable.
+func (mr *MockRentRepositoryMockRecorder) GetCarPriceIfAvailable(ctx, req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrepareCreateRent", reflect.TypeOf((*MockRentRepository)(nil).PrepareCreateRent), ctx, req)
 }

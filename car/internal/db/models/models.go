@@ -3,11 +3,11 @@ package models
 import "time"
 
 type Rent struct {
-	CarUUID   string
-	RentPrice float32
+	CarUUID   string  `db:"car_uuid"`
+	RentPrice float32 `db:"rent_price"`
 
-	RentStart *time.Time
-	RentEnd   *time.Time
+	RentStart *time.Time `db:"rent_start"`
+	RentEnd   *time.Time `db:"rent_end"`
 }
 
 type CreateRentReq struct {

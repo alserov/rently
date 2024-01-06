@@ -47,7 +47,9 @@ func (m *metrics) NotifyBrandDemand(brand string) {
 		Topic: m.topics.NotifyBrandDemand,
 		Value: sarama.StringEncoder(brand),
 	})
-	m.log.Error("failed to send message: ", err.Error(), slog.String("op", op))
+	if err != nil {
+		m.log.Error("failed to send message: ", err.Error(), slog.String("op", op))
+	}
 }
 
 func (m *metrics) DecreaseActiveRentsAmount() {
@@ -55,7 +57,9 @@ func (m *metrics) DecreaseActiveRentsAmount() {
 	_, _, err := m.p.SendMessage(&sarama.ProducerMessage{
 		Topic: m.topics.DecreaseActiveRentsAmount,
 	})
-	m.log.Error("failed to send message: ", err.Error(), slog.String("op", op))
+	if err != nil {
+		m.log.Error("failed to send message: ", err.Error(), slog.String("op", op))
+	}
 }
 
 func (m *metrics) IncreaseActiveRentsAmount() {
@@ -63,5 +67,7 @@ func (m *metrics) IncreaseActiveRentsAmount() {
 	_, _, err := m.p.SendMessage(&sarama.ProducerMessage{
 		Topic: m.topics.IncreaseActiveRentsAmount,
 	})
-	m.log.Error("failed to send message: ", err.Error(), slog.String("op", op))
+	if err != nil {
+		m.log.Error("failed to send message: ", err.Error(), slog.String("op", op))
+	}
 }

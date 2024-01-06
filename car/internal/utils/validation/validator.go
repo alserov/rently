@@ -146,11 +146,11 @@ func (v *validator) ValidateCheckRentReq(req *car.CheckRentReq) error {
 
 func (v *validator) ValidateCreateRentReq(req *car.CreateRentReq) error {
 	if req.GetRentEnd() == nil || req.GetRentEnd().AsTime().Unix() < time.Now().Unix() {
-		return status.Error(codes.InvalidArgument, "invalid car end timestamp")
+		return status.Error(codes.InvalidArgument, "invalid rent end timestamp")
 	}
 
 	if req.GetRentStart() == nil || req.GetRentEnd().AsTime().Unix() < time.Now().Unix() {
-		return status.Error(codes.InvalidArgument, "invalid car end timestamp")
+		return status.Error(codes.InvalidArgument, "invalid rent start timestamp")
 	}
 
 	if req.GetRentEnd().AsTime().Unix() <= req.GetRentStart().AsTime().Unix() {
@@ -169,9 +169,9 @@ func (v *validator) ValidateCreateRentReq(req *car.CreateRentReq) error {
 		return status.Error(codes.InvalidArgument, ERR_INVALID_PHONE_NUMBER)
 	}
 
-	if err := v.validateCardCredentials(req.GetPaymentSource()); err != nil {
-		return status.Error(codes.InvalidArgument, ERR_INVALID_CARD_NUMBER)
-	}
+	//if err := v.validateCardCredentials(req.GetPaymentSource()); err != nil {
+	//	return status.Error(codes.InvalidArgument, ERR_INVALID_CARD_NUMBER)
+	//}
 
 	return nil
 }

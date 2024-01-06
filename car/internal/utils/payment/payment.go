@@ -2,11 +2,13 @@ package payment
 
 import (
 	"fmt"
+	"github.com/alserov/rently/car/internal/models"
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/charge"
 	"github.com/stripe/stripe-go/refund"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"net/http"
 	"time"
 )
 
@@ -27,10 +29,6 @@ func NewPayer(apiKey string) Payer {
 type payer struct {
 	key string
 }
-
-const (
-	ERR_INVALID_PRICE = "payment amount must be greater than or equal to 1"
-)
 
 type Service interface {
 	Period() time.Duration
@@ -57,7 +55,10 @@ func (p payer) Refund(chargeID string, amount float32) error {
 
 func (p payer) Debit(source string, amount float32) (string, error) {
 	if amount < 1 {
-		return "", status.Error(codes.Internal, ERR_INVALID_PRICE)
+		return "", &models.Error{
+			Code: http.StatusInternalServerError,
+			Msg:  fmt.Sprintf("invalid amount: %v", amount),
+		}
 	}
 
 	params := &stripe.ChargeParams{
@@ -67,12 +68,18 @@ func (p payer) Debit(source string, amount float32) (string, error) {
 	}
 
 	if err := params.SetSource(source); err != nil {
-		return "", status.Error(codes.Internal, fmt.Sprintf("failed to set source: %v", err))
+		return "", &models.Error{
+			Code: http.StatusInternalServerError,
+			Msg:  fmt.Sprintf("failed to set source: %v", err),
+		}
 	}
 
 	ch, err := charge.New(params)
 	if err != nil {
-		return "", status.Error(codes.Internal, fmt.Sprintf("failed to init charge: %v", err))
+		return "", &models.Error{
+			Code: http.StatusInternalServerError,
+			Msg:  fmt.Sprintf("failed to init charge: %v", err),
+		}
 	}
 
 	return ch.ID, nil

@@ -13,11 +13,11 @@ CREATE TABLE IF NOT EXISTS rents
 
 CREATE TABLE IF NOT EXISTS cars
 (
+    uuid          text                            NOT NULL,
     brand         varchar(30)                     NOT NULL,
     type          varchar(20)                     NOT NULL,
     max_speed     int                             NOT NULL,
     seats         int CHECK ( seats > 1 )         NOT NULL,
     category      varchar(10)                     NOT NULL,
-    price_per_day int CHECK ( price_per_day > 0 ) NOT NULL,
-    uuid          text                            NOT NULL
+    price_per_day int CHECK ( price_per_day > 0 ) NOT NULL
 );

@@ -15,7 +15,7 @@ type ToRepo interface {
 	CarToRepo(req models.Car[[]byte]) repo.Car
 	ParamsToRepo(req models.CarParams) repo.CarParams
 	PeriodToRepo(req models.Period) repo.Period
-	CreateRentToRepo(req models.CreateRentReq) repo.CreateRentReq
+	CreateRentToRepo(req models.CreateRentReq, chargeID string, pricePerDay float32) repo.CreateRentReq
 	CheckIfCarAvailableToRepo(req models.CreateRentReq) repo.CheckIfCarAvailable
 }
 
@@ -131,14 +131,14 @@ func (s serviceConverter) CheckRentToService(res repo.Rent) models.Rent {
 	}
 }
 
-func (s serviceConverter) CreateRentToRepo(req models.CreateRentReq) repo.CreateRentReq {
+func (s serviceConverter) CreateRentToRepo(req models.CreateRentReq, chargeID string, pricePerDay float32) repo.CreateRentReq {
 	return repo.CreateRentReq{
 		RentUUID:       req.RentUUID,
 		CarUUID:        req.CarUUID,
 		PhoneNumber:    req.PhoneNumber,
 		PassportNumber: req.PassportNumber,
-		ChargeID:       "",
-		RentPrice:      100,
+		ChargeID:       chargeID,
+		RentPrice:      pricePerDay,
 		RentStart:      req.RentStart,
 		RentEnd:        req.RentEnd,
 	}

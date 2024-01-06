@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/IBM/sarama"
 
 	"github.com/alserov/rently/car/internal/db"
@@ -214,7 +215,7 @@ func (s *service) CancelRent(ctx context.Context, rentUUID string) error {
 func (s *service) CheckRent(ctx context.Context, rentUUID string) (res models.Rent, err error) {
 	rent, err := s.repo.CheckRent(ctx, rentUUID)
 	if err != nil {
-		return models.Rent{}, err
+		return models.Rent{}, fmt.Errorf("repository error: %w", err)
 	}
 
 	return s.convert.CheckRentToService(rent), nil
@@ -223,22 +224,23 @@ func (s *service) CheckRent(ctx context.Context, rentUUID string) (res models.Re
 func (s *service) CreateRent(ctx context.Context, req models.CreateRentReq) (models.CreateRentRes, error) {
 	req.RentUUID = uuid.New().String()
 
-	if err := s.repo.CheckIfCarAvailable(ctx, s.convert.CheckIfCarAvailableToRepo(req)); err != nil {
-		return models.CreateRentRes{}, err
-	}
-
-	totalPrice := s.payment.CountPrice(req.CarPricePerDay, &req)
-
-	if err := s.repo.CreateRent(ctx, s.convert.CreateRentToRepo(req)); err != nil {
-		return models.CreateRentRes{}, err
-	}
-
-	chargeID, err := s.payment.Debit(req.PaymentSource, totalPrice)
+	var err error
+	pricePerDay, err := s.repo.PrepareCreateRent(ctx, s.convert.CheckIfCarAvailableToRepo(req))
 	if err != nil {
-		return models.CreateRentRes{}, err
+		return models.CreateRentRes{}, fmt.Errorf("repository error: %w", err)
+	}
+
+	chargeID, err := s.payment.Debit(req.PaymentSource, s.payment.CountPrice(pricePerDay, &req))
+	if err != nil {
+		return models.CreateRentRes{}, fmt.Errorf("payment error: %w", err)
+	}
+
+	if err = s.repo.CreateRent(ctx, s.convert.CreateRentToRepo(req, chargeID, pricePerDay)); err != nil {
+		return models.CreateRentRes{}, fmt.Errorf("repository error: %w", err)
 	}
 
 	s.metrics.IncreaseActiveRentsAmount()
+
 	return models.CreateRentRes{
 		RentUUID: req.RentUUID,
 		ChargeID: chargeID,
