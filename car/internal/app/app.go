@@ -2,11 +2,12 @@ package app
 
 import (
 	"fmt"
+	"github.com/IBM/sarama"
 	"github.com/alserov/rently/car/internal/utils/clients"
 
 	"github.com/alserov/rently/car/internal/config"
 	"github.com/alserov/rently/car/internal/db/postgres"
-	mtrcs "github.com/alserov/rently/car/internal/metrics"
+	"github.com/alserov/rently/car/internal/metrics"
 	"github.com/alserov/rently/car/internal/server"
 	"github.com/alserov/rently/car/internal/service"
 	"github.com/alserov/rently/car/internal/utils/broker"
@@ -28,6 +29,8 @@ type App struct {
 
 	broker broker.Broker
 
+	services clients.Services
+
 	gRPCServer *grpc.Server
 }
 
@@ -36,7 +39,6 @@ func NewApp(cfg *config.Config) *App {
 		port: cfg.Port,
 
 		dsn: fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", cfg.DB.Name, cfg.DB.Password, cfg.DB.Host, cfg.DB.Port, cfg.DB.Name),
-
 		broker: broker.Broker{
 			Addr: cfg.Broker.Addr,
 			Topics: broker.Topics{
@@ -47,10 +49,14 @@ func NewApp(cfg *config.Config) *App {
 					NotifyBrandDemand:         cfg.Broker.Topics.Metrics.NotifyBrandDemand,
 				},
 				Images: broker.ImageTopics{
-					Save:   cfg.Broker.Topics.Files.Save,
-					Delete: cfg.Broker.Topics.Files.Delete,
+					Save:   cfg.Broker.Topics.Files.SaveImages,
+					Delete: cfg.Broker.Topics.Files.DeleteImages,
 				},
 			},
+		},
+
+		services: clients.Services{
+			FileStorageAddr: cfg.Services.FileStorageAddr,
 		},
 
 		log:        log.MustSetup(cfg.Env),
@@ -71,15 +77,25 @@ func (a *App) MustStart() {
 	db := postgres.MustConnect(a.dsn)
 	repo := postgres.NewRepo(db)
 
-	producer := broker.NewProducer(a.broker.Addr)
-	metr := mtrcs.NewMetrics(producer, a.broker.Topics.Metrics, a.log)
+	syncProducer := broker.NewSyncProducer(a.broker.Addr)
+	metr := metrics.NewMetrics(syncProducer, a.broker.Topics.Metrics, a.log)
 
-	serv := service.NewService(repo, metr, a.log)
+	asyncProducer := broker.NewAsyncProducer(a.broker.Addr)
 
-	cls, conn, closeConn := clients.SetupClients(clients.ClientAddresses{})
+	serv := service.NewService(service.Params{
+		BrokerConsumerConfig: sarama.NewConfig(),
+		BrokerProducer:       asyncProducer,
+		Repo:                 repo,
+		Metrics:              metr,
+		Topics:               a.broker.Topics,
+	})
+
+	cls, conn, closeConn := clients.SetupClients(clients.Services{
+		FileStorageAddr: a.services.FileStorageAddr,
+	})
 	defer closeConn(conn)
 
-	server.RegisterGRPCServer(a.gRPCServer, serv, cls)
+	server.RegisterGRPCServer(a.gRPCServer, serv, cls, a.log)
 
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", a.port))
 	if err != nil {

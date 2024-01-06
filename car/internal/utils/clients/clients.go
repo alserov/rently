@@ -2,13 +2,11 @@ package clients
 
 import (
 	"fmt"
-	"github.com/alserov/rently/car/internal/server"
 	fstorage "github.com/alserov/rently/proto/gen/file-storage"
 	"google.golang.org/grpc"
-	"net/http"
 )
 
-type ClientAddresses struct {
+type Services struct {
 	FileStorageAddr string
 }
 
@@ -20,9 +18,9 @@ type CloseFunc func([]*grpc.ClientConn)
 
 const clientsAmount = 1
 
-func SetupClients(addr ClientAddresses) (*Clients, []*grpc.ClientConn, CloseFunc) {
+func SetupClients(addr Services) (*Clients, []*grpc.ClientConn, CloseFunc) {
 	clients := &Clients{}
-	conns := make([]*grpc.ClientConn, clientsAmount)
+	conns := make([]*grpc.ClientConn, 0, clientsAmount)
 
 	fStorageClient, cc, err := newFileStorageClient(addr.FileStorageAddr)
 	if err != nil {
@@ -36,7 +34,10 @@ func SetupClients(addr ClientAddresses) (*Clients, []*grpc.ClientConn, CloseFunc
 
 func Close(conns []*grpc.ClientConn) {
 	for _, c := range conns {
-		c.Close()
+		err := c.Close()
+		if err != nil {
+			panic("failed to close connection: " + err.Error())
+		}
 	}
 }
 
@@ -52,12 +53,9 @@ func newFileStorageClient(addr string) (fstorage.FileStorageClient, *grpc.Client
 }
 
 func dial(addr string) (*grpc.ClientConn, error) {
-	cc, err := grpc.Dial(addr)
+	cc, err := grpc.Dial(addr, grpc.WithInsecure())
 	if err != nil {
-		return nil, &server.Error{
-			Code: http.StatusInternalServerError,
-			Msg:  fmt.Sprintf("failed to dial: %v", err),
-		}
+		return nil, fmt.Errorf("failed to dial: %v", err)
 	}
 
 	return cc, nil

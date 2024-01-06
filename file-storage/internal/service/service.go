@@ -8,18 +8,26 @@ import (
 )
 
 type Service interface {
+	SetLogger(log *slog.Logger)
+
 	GetLinks(ctx context.Context, uuid string) ([]string, error)
 	GetImage(ctx context.Context, link string) ([]byte, error)
 }
 
 func NewService() Service {
-	return &service{}
+	return &service{
+		filer: files.NewFiler(files.RelativeImageDir),
+	}
 }
 
 type service struct {
 	log *slog.Logger
 
 	filer files.Filer
+}
+
+func (s service) SetLogger(log *slog.Logger) {
+	s.log = log
 }
 
 func (s service) GetLinks(ctx context.Context, uuid string) ([]string, error) {

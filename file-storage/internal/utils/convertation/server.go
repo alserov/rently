@@ -18,12 +18,14 @@ func NewServerConverter() ServerConverter {
 type serverConverter struct {
 }
 
-func (s serverConverter) ImageBytesToPb(bytes []byte) *fstorage.GetImageRes {
-	//TODO implement me
-	panic("implement me")
+func (s serverConverter) ImageBytesToPb(imagesBytes []byte) *fstorage.GetImageRes {
+	return &fstorage.GetImageRes{
+		Image: imagesBytes,
+	}
 }
 
-func (s serverConverter) LinksToPb(strings []string) *fstorage.GetLinksRes {
-	//TODO implement me
-	panic("implement me")
+func (s serverConverter) LinksToPb(links []string) *fstorage.GetLinksRes {
+	return &fstorage.GetLinksRes{
+		Links: links,
+	}
 }

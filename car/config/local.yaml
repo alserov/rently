@@ -1,14 +1,20 @@
 env: local
 port: 3005
 
+services:
+  fileStorageAddr: localhost:4040
+
 broker:
   addr: localhost:9092
-  metrics:
-    topics:
+  topics:
+    metrics:
       decreaseActiveRentsAmount: ACTIVE_CAR_RENTS_INC
       increaseActiveRentsAmount: ACTIVE_CAR_RENTS_DEC
       increaseRentsCancel: RENTS_CANCELED
       notifyBrandDemand: REQUESTED_BRANDS
+    files:
+      saveImages: FILE_STORAGE_SAVE_IMAGE
+      deleteImages: FILE_STORAGE_DELETE_IMAGE
 
 db:
   host: localhost

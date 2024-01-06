@@ -28,8 +28,10 @@ type App struct {
 
 func NewApp(cfg *config.Config) *App {
 	return &App{
-		log: log.MustSetup(cfg.Env),
+		port: cfg.Port,
+		log:  log.MustSetup(cfg.Env),
 		broker: broker.Broker{
+			Addr: cfg.Broker.Addr,
 			Topics: broker.Topics{
 				SaveImages:   cfg.Broker.Topics.SaveImages,
 				DeleteImages: cfg.Broker.Topics.DeleteImages,
@@ -40,15 +42,15 @@ func NewApp(cfg *config.Config) *App {
 }
 
 func (a *App) MustStart() {
-	a.log.Info("starting app")
+	a.log.Info("starting app", slog.Int("port", a.port))
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
 	imageWorker := worker.NewImageWorker(a.broker.Addr, a.broker.Topics, a.log)
-	imageWorker.MustStart(ctx)
+	go imageWorker.MustStart(ctx)
 
-	server.RegisterGRPCServer(a.gRPCServer, service.NewService())
+	server.RegisterGRPCServer(a.gRPCServer, service.NewService(), a.log)
 
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", a.port))
 	if err != nil {

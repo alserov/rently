@@ -12,7 +12,13 @@ type Config struct {
 
 	DB Postgres
 
+	Services Services
+
 	Broker Broker
+}
+
+type Services struct {
+	FileStorageAddr string `yaml:"fileStorageAddr"`
 }
 
 type Postgres struct {
@@ -33,9 +39,9 @@ type Broker struct {
 			NotifyBrandDemand         string `yaml:"notifyBrandDemand"`
 		} `yaml:"metrics"`
 		Files struct {
-			Save   string `yaml:"save"`
-			Delete string `yaml:"delete"`
-		}
+			SaveImages   string `yaml:"saveImages"`
+			DeleteImages string `yaml:"deleteImages"`
+		} `yaml:"files"`
 	} `yaml:"topics"`
 }
 

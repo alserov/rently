@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"github.com/alserov/rently/car/internal/service"
 	"github.com/alserov/rently/car/internal/utils/clients"
 	"github.com/alserov/rently/car/internal/utils/convertation"
@@ -10,15 +11,22 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"log/slog"
+	"sync"
 )
 
-func RegisterGRPCServer(gRPCServer *grpc.Server, service service.Service, clients *clients.Clients) {
-	car.RegisterCarsServer(gRPCServer, &server{
+func RegisterGRPCServer(gRPCServer *grpc.Server, service service.Service, clients *clients.Clients, log *slog.Logger) {
+	car.RegisterCarsServer(gRPCServer, newServer(service, clients, log))
+}
+
+func newServer(service service.Service, clients *clients.Clients, log *slog.Logger) car.CarsServer {
+	service.SetLogger(log)
+	return &server{
+		log:        log,
 		service:    service,
 		clients:    clients,
 		validation: validation.NewValidator(),
 		convert:    convertation.NewServerConverter(),
-	})
+	}
 }
 
 type server struct {
@@ -53,7 +61,7 @@ func (s *server) DeleteCar(ctx context.Context, req *car.DeleteCarReq) (*emptypb
 	}
 
 	if err := s.service.DeleteCar(ctx, req.CarUUID); err != nil {
-		return nil, err
+		return nil, handleError(err, s.log)
 	}
 
 	return &emptypb.Empty{}, nil
@@ -65,7 +73,7 @@ func (s *server) UpdateCarPrice(ctx context.Context, req *car.UpdateCarPriceReq)
 	}
 
 	if err := s.service.UpdateCarPrice(ctx, s.convert.UpdateCarPriceReqToService(req)); err != nil {
-		return nil, err
+		return nil, handleError(err, s.log)
 	}
 
 	return &emptypb.Empty{}, nil
@@ -78,7 +86,7 @@ func (s *server) CreateRent(ctx context.Context, req *car.CreateRentReq) (*car.C
 
 	res, err := s.service.CreateRent(ctx, s.convert.CreateRentReqToService(req))
 	if err != nil {
-		return nil, err
+		return nil, handleError(err, s.log)
 	}
 
 	return s.convert.CreateRentToPb(res), nil
@@ -119,10 +127,33 @@ func (s *server) GetAvailableCars(ctx context.Context, req *car.GetAvailableCars
 		return nil, err
 	}
 
-	// TODO: fetch images for each car
+	var (
+		chErr = make(chan error, len(cars))
+		wg    = sync.WaitGroup{}
+	)
+
+	wg.Add(len(cars))
+	for idx, _ := range cars {
+		go func(idx int, wg *sync.WaitGroup) {
+			defer wg.Done()
+			images, err := s.clients.FileStorage.GetLinks(ctx, s.convert.GetLinksReqToPb(cars[idx]))
+			if err != nil {
+				cars[idx].Images = []string{}
+				chErr <- err
+				return
+			}
+			cars[idx].Images = images.Links
+		}(idx, &wg)
+	}
+
+	go func() {
+		wg.Wait()
+		close(chErr)
+	}()
 
 	if err = <-chErr; err != nil {
-		return nil, handleError(err, s.log)
+		fmt.Println(s.log)
+		s.log.Error("failed to fetch links for car image", slog.String("error", err.Error()))
 	}
 
 	return s.convert.CarsToPb(cars), nil

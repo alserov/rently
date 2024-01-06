@@ -7,6 +7,8 @@ import (
 	"sync"
 )
 
+const RelativeImageDir = "internal/images"
+
 type Filer interface {
 	Save(file []byte, uuid string, idx int) error
 	Delete(uuid string) error
@@ -63,6 +65,7 @@ func (flr *filer) Delete(uuid string) error {
 func (flr *filer) Save(file []byte, uuid string, idx int) error {
 	dir := fmt.Sprintf("%s/%s/", flr.relativeDir, uuid)
 
+	fmt.Println(uuid)
 	flr.mu.RLock()
 	if _, err := os.Stat(flr.relativeDir); err != nil {
 		if err = os.MkdirAll(flr.relativeDir, 0644); err != nil {

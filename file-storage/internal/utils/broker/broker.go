@@ -16,8 +16,8 @@ type Topics struct {
 	DeleteImages string
 }
 
-func Consume[MessageType any](workersAmount int, topic string, consumerConfig *sarama.Config, log *slog.Logger) chan MessageType {
-	master, err := sarama.NewConsumer([]string{topic}, consumerConfig)
+func Consume[MessageType any](workersAmount int, addr string, topic string, consumerConfig *sarama.Config, log *slog.Logger) chan MessageType {
+	master, err := sarama.NewConsumer([]string{addr}, consumerConfig)
 	if err != nil {
 		panic("failed to init consumer: " + err.Error())
 	}

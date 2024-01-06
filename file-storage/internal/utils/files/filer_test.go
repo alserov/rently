@@ -1,7 +1,6 @@
 package files
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/require"
 	"io"
 	"io/ioutil"
@@ -48,6 +47,6 @@ func TestFiler_GetImage(t *testing.T) {
 	defer os.RemoveAll("images")
 	require.NoError(t, err)
 
-	_, err = f.GetImage(fmt.Sprintf("uuid"), 0)
+	_, err = f.GetImage("uuid")
 	require.NoError(t, err)
 }

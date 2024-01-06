@@ -1,6 +1,7 @@
 package payment
 
 import (
+	"fmt"
 	"github.com/alserov/rently/car/internal/service/models"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -37,6 +38,8 @@ func TestPayer_CountPrice(t *testing.T) {
 
 	start := time.Now()
 	end := time.Now().Add(time.Hour * 24 * 5)
+
+	fmt.Println(start.Nanosecond(), start.Unix(), end.Nanosecond(), end.Unix())
 
 	price := p.CountPrice(50, &models.CreateRentReq{
 		RentStart: &start,

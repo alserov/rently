@@ -10,8 +10,13 @@ import (
 	"log/slog"
 )
 
-func RegisterGRPCServer(gRPCServer *grpc.Server, service service.Service) {
-	fstorage.RegisterFileStorageServer(gRPCServer, &server{})
+func RegisterGRPCServer(gRPCServer *grpc.Server, service service.Service, log *slog.Logger) {
+	fstorage.RegisterFileStorageServer(gRPCServer, &server{
+		log:     log,
+		convert: convertation.NewServerConverter(),
+		service: service,
+		valid:   validation.NewValidator(),
+	})
 }
 
 type server struct {

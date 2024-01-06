@@ -18,6 +18,8 @@ import (
 )
 
 type Service interface {
+	SetLogger(log *slog.Logger)
+
 	RentActions
 	CarActions
 	AdminActions
@@ -41,25 +43,24 @@ type RentActions interface {
 	CheckRent(ctx context.Context, rentUUID string) (res models.Rent, err error)
 }
 
-func NewService(repo db.Repository, metrics metrics.Metrics, log *slog.Logger) Service {
-	consumerConfig := sarama.NewConfig()
+type Params struct {
+	BrokerProducer       sarama.AsyncProducer
+	BrokerConsumerConfig *sarama.Config
 
-	producerConfig := sarama.NewConfig()
-	producerConfig.Producer.Return.Errors = true
-	producerConfig.Producer.Return.Successes = true
-	producer, err := sarama.NewAsyncProducer([]string{}, producerConfig)
-	if err != nil {
-		panic("failed to init async producer: " + err.Error())
-	}
+	Repo    db.Repository
+	Metrics metrics.Metrics
+	Topics  broker.Topics
+}
 
+func NewService(params Params) Service {
 	return &service{
-		log:            log,
-		repo:           repo,
-		metrics:        metrics,
+		repo:           params.Repo,
+		metrics:        params.Metrics,
 		convert:        convertation.NewServiceConverter(),
 		payment:        payment.NewPayer("sk_test_51OU56CDOnc0MdcTNBwddO2cn8NrEebjfuAGjBjj9xSyKmiUO4ajJ1vZ0yBoOsAMq0HjHqCmis2niwoj2EZYCDLOA00lcCUlWxh"),
-		producer:       producer,
-		consumerConfig: consumerConfig,
+		producer:       params.BrokerProducer,
+		consumerConfig: params.BrokerConsumerConfig,
+		topics:         params.Topics,
 	}
 }
 
@@ -77,6 +78,10 @@ type service struct {
 	consumerConfig *sarama.Config
 	producer       sarama.AsyncProducer
 	topics         broker.Topics
+}
+
+func (s *service) SetLogger(log *slog.Logger) {
+	s.log = log
 }
 
 func (s *service) CreateCar(ctx context.Context, car models.Car[[]byte]) error {

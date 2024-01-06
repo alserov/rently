@@ -17,7 +17,7 @@ type Broker struct {
 	Addr   string `yaml:"addr"`
 	Topics struct {
 		SaveImages   string `yaml:"saveImages"`
-		DeleteImages string `json:"deleteImages"`
+		DeleteImages string `yaml:"deleteImages"`
 	} `yaml:"topics"`
 }
 

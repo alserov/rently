@@ -20,20 +20,21 @@ func (e *Error) Error() string {
 }
 
 func handleError(err error, log *slog.Logger) error {
-	var error Error
-	ok := errors.As(err, &error)
+	e := &Error{}
+	ok := errors.As(err, &e)
 
 	if ok {
-		switch error.Code {
+		switch e.Code {
 		case http.StatusInternalServerError:
+			log.Error(e.Msg)
 			return status.Error(codes.Internal, internalError)
 		case http.StatusBadRequest:
-			return status.Error(codes.InvalidArgument, error.Msg)
+			return status.Error(codes.InvalidArgument, e.Msg)
 		case http.StatusNotFound:
-			return status.Error(codes.NotFound, error.Msg)
+			return status.Error(codes.NotFound, e.Msg)
 		}
 	}
 
 	log.Error("unexpected error", slog.String("error", err.Error()))
-	return error
+	return e
 }

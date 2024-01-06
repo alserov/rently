@@ -4,13 +4,13 @@ go 1.21.0
 
 require (
 	github.com/IBM/sarama v1.42.1
+	github.com/alserov/rently/proto v0.0.0-20240105194157-c103785d54f4
 	github.com/stretchr/testify v1.8.4
 	google.golang.org/grpc v1.60.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
-	github.com/alserov/rently/proto v0.0.0-20240105183601-a06bf48f548e // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/eapache/go-resiliency v1.4.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20230731223053-c322873962e3 // indirect

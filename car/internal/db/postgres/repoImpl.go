@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"github.com/alserov/rently/car/internal/db"
 	"github.com/alserov/rently/car/internal/db/models"
+	"github.com/alserov/rently/car/internal/server"
 	"github.com/jmoiron/sqlx"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"net/http"
 )
 
 func NewRepo(db *sqlx.DB) db.Repository {
@@ -45,7 +47,10 @@ func (r *repository) CreateCar(ctx context.Context, car models.Car) error {
 
 	_, err := r.db.Exec(query, car.Brand, car.Type, car.MaxSpeed, car.Seats, car.Category, car.PricePerDay, car.UUID)
 	if err != nil {
-		return status.Error(codes.Internal, fmt.Sprintf("failed to execute insert query: %v", err))
+		return &server.Error{
+			Code: http.StatusInternalServerError,
+			Msg:  fmt.Sprintf("failed to execute query: %v", err),
+		}
 	}
 
 	return nil
@@ -70,28 +75,39 @@ func (r *repository) UpdateCarPrice(ctx context.Context, req models.UpdateCarPri
 
 	_, err := r.db.Exec(query, req.Price, req.CarUUID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return status.Error(codes.NotFound, ERR_NO_ROWS)
+		return &server.Error{
+			Code: http.StatusNotFound,
+			Msg:  fmt.Sprintf("car with uuid: %s not found", req.CarUUID),
+		}
 	}
 	if err != nil {
-		return status.Error(codes.Internal, fmt.Sprintf("failed to execute delete query: %v", err))
+		return &server.Error{
+			Code: http.StatusInternalServerError,
+			Msg:  fmt.Sprintf("failed to execute delete query: %v", err),
+		}
 	}
 
 	return nil
 }
 
 func (r *repository) CheckIfCarAvailable(ctx context.Context, req models.CheckIfCarAvailable) error {
-	query := `SELECT EXISTS(
-				SELECT 1 FROM cars WHERE $1 NOT IN 
-                SELECT car_uuid FROM rents WHERE rent_start > $2 OR rent_end < $3 LIMIT 1 as available
-                AND available.car_uuid = $1)`
+	query := `-- SELECT 1 FROM cars WHERE uuid = $1 IN (
+SELECT car_uuid FROM rents WHERE rent_start > $1 AND rent_end < $2 LIMIT 1
+--                                                                    )`
 
 	var exists bool
-	err := r.db.Get(&exists, query, req.CarUUID, req.RentStart, req.RentEnd)
+	err := r.db.Get(&exists, query, req.RentEnd, req.RentStart)
 	if errors.Is(err, sql.ErrNoRows) {
-		return status.Error(codes.NotFound, ERR_NOT_AVAILABLE)
+		return &server.Error{
+			Code: http.StatusNotFound,
+			Msg:  fmt.Sprintf("this car is not available from %v to %v", req.RentStart, req.RentEnd),
+		}
 	}
 	if err != nil {
-		return status.Error(codes.Internal, err.Error())
+		return &server.Error{
+			Code: http.StatusInternalServerError,
+			Msg:  fmt.Sprintf("failed to get available cars: %v", err),
+		}
 	}
 
 	return nil

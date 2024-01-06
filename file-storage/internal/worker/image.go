@@ -14,6 +14,7 @@ func NewImageWorker(brokerAddr string, topics broker.Topics, log *slog.Logger) W
 		brokerAddr:     brokerAddr,
 		topics:         topics,
 		consumerConfig: sarama.NewConfig(),
+		filer:          files.NewFiler(files.RelativeImageDir),
 	}
 }
 
@@ -39,16 +40,16 @@ type imageWorker struct {
 }
 
 func (iw *imageWorker) MustStart(ctx context.Context) {
-	go iw.save(iw.topics.SaveImages)
-	go iw.delete(iw.topics.DeleteImages)
+	go iw.save(ctx, iw.topics.SaveImages)
+	go iw.delete(ctx, iw.topics.DeleteImages)
 
 	<-ctx.Done()
 }
 
 const workersAmount = 3
 
-func (iw *imageWorker) delete(topic string) {
-	messages := broker.Consume[uuidMessage](workersAmount, topic, iw.consumerConfig, iw.log)
+func (iw *imageWorker) delete(ctx context.Context, topic string) {
+	messages := broker.Consume[uuidMessage](workersAmount, iw.brokerAddr, topic, iw.consumerConfig, iw.log)
 
 	for i := 0; i < workersAmount; i++ {
 		go func() {
@@ -60,10 +61,12 @@ func (iw *imageWorker) delete(topic string) {
 			}
 		}()
 	}
+
+	<-ctx.Done()
 }
 
-func (iw *imageWorker) save(topic string) {
-	messages := broker.Consume[fileMessage](workersAmount, topic, iw.consumerConfig, iw.log)
+func (iw *imageWorker) save(ctx context.Context, topic string) {
+	messages := broker.Consume[fileMessage](workersAmount, iw.brokerAddr, topic, iw.consumerConfig, iw.log)
 	for i := 0; i < workersAmount; i++ {
 		go func() {
 			for msg := range messages {
@@ -74,4 +77,6 @@ func (iw *imageWorker) save(topic string) {
 			}
 		}()
 	}
+
+	<-ctx.Done()
 }

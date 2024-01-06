@@ -4,7 +4,7 @@ import (
 	"github.com/IBM/sarama"
 )
 
-func NewProducer(brokerAddr string) sarama.SyncProducer {
+func NewSyncProducer(brokerAddr string) sarama.SyncProducer {
 	cfg := sarama.NewConfig()
 	cfg.Producer.Return.Errors = true
 	cfg.Producer.Return.Successes = true
@@ -15,4 +15,17 @@ func NewProducer(brokerAddr string) sarama.SyncProducer {
 	}
 
 	return p
+}
+
+func NewAsyncProducer(brokerAddr string) sarama.AsyncProducer {
+	producerConfig := sarama.NewConfig()
+	producerConfig.Producer.Return.Errors = true
+	producerConfig.Producer.Return.Successes = true
+
+	producer, err := sarama.NewAsyncProducer([]string{brokerAddr}, producerConfig)
+	if err != nil {
+		panic("failed to init async producer: " + err.Error())
+	}
+
+	return producer
 }
