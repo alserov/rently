@@ -3,7 +3,6 @@ package convertation
 import (
 	"github.com/alserov/rently/car/internal/service/models"
 	"github.com/alserov/rently/proto/gen/car"
-	fstorage "github.com/alserov/rently/proto/gen/file-storage"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"time"
 )
@@ -24,7 +23,6 @@ type PbToService interface {
 }
 
 type ToPb interface {
-	GetLinksReqToPb(req models.Car[string]) *fstorage.GetLinksReq
 	CreateRentToPb(res models.CreateRentRes) *car.CreateRentRes
 	CheckRentToPb(res models.Rent) *car.CheckRentRes
 	CarsToPb(res []models.Car[string]) *car.GetCarsRes
@@ -36,12 +34,6 @@ func NewServerConverter() ServerConverter {
 }
 
 type serverConverter struct {
-}
-
-func (s *serverConverter) GetLinksReqToPb(req models.Car[string]) *fstorage.GetLinksReq {
-	return &fstorage.GetLinksReq{
-		UUID: req.UUID,
-	}
 }
 
 func (s *serverConverter) UpdateCarPriceReqToService(req *car.UpdateCarPriceReq) models.UpdateCarPriceReq {

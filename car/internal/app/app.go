@@ -2,8 +2,8 @@ package app
 
 import (
 	"fmt"
-	"github.com/IBM/sarama"
 	"github.com/alserov/rently/car/internal/utils/clients"
+	"github.com/alserov/rently/car/internal/utils/files"
 
 	"github.com/alserov/rently/car/internal/config"
 	"github.com/alserov/rently/car/internal/db/postgres"
@@ -65,37 +65,41 @@ func NewApp(cfg *config.Config) *App {
 }
 
 func (a *App) MustStart() {
-	//defer func() {
-	//	err := recover()
-	//	if err != nil {
-	//		a.log.Error("panic recovery: ", err)
-	//	}
-	//}()
+	defer func() {
+		err := recover()
+		if err != nil {
+			a.log.Error("panic recovery: ", err)
+		}
+	}()
 
 	a.log.Info("starting app", slog.Int("port", a.port))
 
 	db := postgres.MustConnect(a.dsn)
 	repo := postgres.NewRepo(db)
 
+	asyncProducer := broker.NewAsyncProducer(a.broker.Addr)
 	syncProducer := broker.NewSyncProducer(a.broker.Addr)
+
+	// metrics
 	metr := metrics.NewMetrics(syncProducer, a.broker.Topics.Metrics, a.log)
 
-	asyncProducer := broker.NewAsyncProducer(a.broker.Addr)
-
-	serv := service.NewService(service.Params{
-		BrokerConsumerConfig: sarama.NewConfig(),
-		BrokerProducer:       asyncProducer,
-		Repo:                 repo,
-		Metrics:              metr,
-		Topics:               a.broker.Topics,
-	})
-
-	cls, conn, closeConn := clients.SetupClients(clients.Services{
+	// dials other services and returns their clients, connections and error
+	cli, conn, closeConn := clients.SetupClients(clients.Services{
 		FileStorageAddr: a.services.FileStorageAddr,
 	})
-	defer closeConn(conn)
+	defer closeConn(conn) // closes all connections with other services
 
-	server.RegisterGRPCServer(a.gRPCServer, serv, cls, a.log)
+	// image functionality, save, delete, get
+	imager := files.NewImager(asyncProducer, cli.FileStorage, a.broker.Topics.Images, a.log)
+
+	// bll
+	serv := service.NewService(repo, imager, a.log)
+
+	server.RegisterGRPCServer(a.gRPCServer, server.Server{
+		Service: serv,
+		Metrics: metr,
+		Clients: cli,
+	}, a.log)
 
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", a.port))
 	if err != nil {

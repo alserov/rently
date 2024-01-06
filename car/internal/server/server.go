@@ -3,12 +3,14 @@ package server
 import (
 	"context"
 	"errors"
-	"fmt"
+
+	"github.com/alserov/rently/car/internal/metrics"
 	"github.com/alserov/rently/car/internal/models"
 	"github.com/alserov/rently/car/internal/service"
 	"github.com/alserov/rently/car/internal/utils/clients"
 	"github.com/alserov/rently/car/internal/utils/convertation"
 	"github.com/alserov/rently/car/internal/utils/validation"
+
 	"github.com/alserov/rently/proto/gen/car"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -16,19 +18,26 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 	"log/slog"
 	"net/http"
-	"sync"
 )
 
-func RegisterGRPCServer(gRPCServer *grpc.Server, service service.Service, clients *clients.Clients, log *slog.Logger) {
-	car.RegisterCarsServer(gRPCServer, newServer(service, clients, log))
+type Server struct {
+	Metrics metrics.Metrics
+
+	Service service.Service
+
+	Clients *clients.Clients
 }
 
-func newServer(service service.Service, clients *clients.Clients, log *slog.Logger) car.CarsServer {
-	service.SetLogger(log)
+func RegisterGRPCServer(gRPCServer *grpc.Server, server Server, log *slog.Logger) {
+	car.RegisterCarsServer(gRPCServer, newServer(server, log))
+}
+
+func newServer(serv Server, log *slog.Logger) car.CarsServer {
 	return &server{
 		log:        log,
-		service:    service,
-		clients:    clients,
+		service:    serv.Service,
+		clients:    serv.Clients,
+		metrics:    serv.Metrics,
 		validation: validation.NewValidator(),
 		convert:    convertation.NewServerConverter(),
 	}
@@ -38,6 +47,8 @@ type server struct {
 	car.UnimplementedCarsServer
 
 	log *slog.Logger
+
+	metrics metrics.Metrics
 
 	service service.Service
 
@@ -54,7 +65,7 @@ func (s *server) CreateCar(ctx context.Context, req *car.CreateCarReq) (*emptypb
 	}
 
 	if err := s.service.CreateCar(ctx, s.convert.CreateCarReqToService(req)); err != nil {
-		return nil, err
+		return nil, handleError(err, s.log)
 	}
 
 	return &emptypb.Empty{}, nil
@@ -94,6 +105,8 @@ func (s *server) CreateRent(ctx context.Context, req *car.CreateRentReq) (*car.C
 		return nil, handleError(err, s.log)
 	}
 
+	s.metrics.IncreaseActiveRentsAmount()
+
 	return s.convert.CreateRentToPb(res), nil
 }
 
@@ -105,6 +118,8 @@ func (s *server) CancelRent(ctx context.Context, req *car.CancelRentReq) (*empty
 	if err := s.service.CancelRent(ctx, req.RentUUID); err != nil {
 		return nil, err
 	}
+
+	s.metrics.DecreaseActiveRentsAmount()
 
 	return &emptypb.Empty{}, nil
 }
@@ -132,35 +147,6 @@ func (s *server) GetAvailableCars(ctx context.Context, req *car.GetAvailableCars
 		return nil, err
 	}
 
-	var (
-		chErr = make(chan error, len(cars))
-		wg    = sync.WaitGroup{}
-	)
-
-	wg.Add(len(cars))
-	for idx, _ := range cars {
-		go func(idx int, wg *sync.WaitGroup) {
-			defer wg.Done()
-			images, err := s.clients.FileStorage.GetLinks(ctx, s.convert.GetLinksReqToPb(cars[idx]))
-			if err != nil {
-				cars[idx].Images = []string{}
-				chErr <- err
-				return
-			}
-			cars[idx].Images = images.Links
-		}(idx, &wg)
-	}
-
-	go func() {
-		wg.Wait()
-		close(chErr)
-	}()
-
-	if err = <-chErr; err != nil {
-		fmt.Println(s.log)
-		s.log.Error("failed to fetch links for car image", slog.String("error", err.Error()))
-	}
-
 	return s.convert.CarsToPb(cars), nil
 }
 
@@ -173,6 +159,8 @@ func (s *server) GetCarsByParams(ctx context.Context, req *car.GetCarsByParamsRe
 	if err != nil {
 		return nil, err
 	}
+
+	s.metrics.NotifyBrandDemand(req.Brand)
 
 	return s.convert.CarsToPb(cars), nil
 }

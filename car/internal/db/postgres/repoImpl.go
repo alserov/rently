@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/alserov/rently/car/internal/db"
 	"github.com/alserov/rently/car/internal/db/models"
@@ -92,40 +93,78 @@ func (r *repository) UpdateCarPrice(ctx context.Context, req models.UpdateCarPri
 }
 
 func (r *repository) PrepareCreateRent(ctx context.Context, req models.CheckIfCarAvailable) (float32, error) {
-	query := `SELECT price_per_day FROM cars WHERE uuid = $1`
+	var (
+		pricePerDay float32
+		wg          sync.WaitGroup
+		chErr       = make(chan error)
+	)
 
-	var pricePerDay float32
-	err := r.db.Get(&pricePerDay, query, req.CarUUID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return 0, &global.Error{
-			Code: http.StatusNotFound,
-			Msg:  fmt.Sprintf("car with uuid: %s not found", req.CarUUID),
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		query := `SELECT price_per_day FROM cars WHERE uuid = $1`
+
+		err := r.db.Get(&pricePerDay, query, req.CarUUID)
+		if errors.Is(err, sql.ErrNoRows) {
+			chErr <- &global.Error{
+				Code: http.StatusNotFound,
+				Msg:  fmt.Sprintf("car with uuid: %s not found", req.CarUUID),
+			}
 		}
-	}
+	}()
 
-	query = `SELECT 1 
+	go func() {
+		defer wg.Done()
+		query := `SELECT 1 
 				FROM rents 
 				WHERE car_uuid = $3 
 				AND $1 BETWEEN rent_start AND rent_end
 				OR $2 BETWEEN rent_start AND rent_end
 				LIMIT 1;`
 
-	var engaged bool
-	err = r.db.Get(&engaged, query, req.RentStart, req.RentEnd, req.CarUUID)
-	if engaged {
-		return 0, &global.Error{
-			Code: http.StatusNotFound,
-			Msg:  fmt.Sprintf("this car is not available from %v to %v", req.RentStart, req.RentEnd),
+		var engaged bool
+		err := r.db.Get(&engaged, query, req.RentStart, req.RentEnd, req.CarUUID)
+		if engaged {
+			chErr <- &global.Error{
+				Code: http.StatusNotFound,
+				Msg:  fmt.Sprintf("this car is not available from %v to %v", req.RentStart, req.RentEnd),
+			}
 		}
-	}
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return 0, &global.Error{
-			Code: http.StatusInternalServerError,
-			Msg:  fmt.Sprintf("failed to get available cars: %v", err),
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			chErr <- &global.Error{
+				Code: http.StatusInternalServerError,
+				Msg:  fmt.Sprintf("failed to get available cars: %v", err),
+			}
 		}
+	}()
+
+	go func() {
+		wg.Wait()
+		close(chErr)
+	}()
+
+	if err := <-chErr; err != nil {
+		return 0, err
 	}
 
 	return pricePerDay, nil
+}
+
+func (r *repository) CreateRent(_ context.Context, req models.CreateRentReq) (err error) {
+	query := `INSERT INTO rents(rent_uuid,rent_price, car_uuid, phone_number,passport_number,charge_id, rent_start,rent_end)
+				VALUES ($1,$2,$3,$4,$5,$6,$7, $8)`
+
+	_, err = r.db.
+		Exec(query, req.RentUUID, req.RentPrice, req.CarUUID, req.PhoneNumber, req.PassportNumber, req.ChargeID, req.RentStart, req.RentEnd)
+	if err != nil {
+		return &global.Error{
+			Code: http.StatusInternalServerError,
+			Msg:  fmt.Sprintf("failed to create rent: %v", err),
+		}
+	}
+
+	return nil
 }
 
 func (r *repository) GetCarsByParams(ctx context.Context, params models.CarParams) ([]models.Car, error) {
@@ -215,20 +254,4 @@ func (r *repository) CheckRent(_ context.Context, rentUUID string) (models.Rent,
 	}
 
 	return rent, nil
-}
-
-func (r *repository) CreateRent(_ context.Context, req models.CreateRentReq) (err error) {
-	query := `INSERT INTO rents(rent_uuid,rent_price, car_uuid, phone_number,passport_number,charge_id, rent_start,rent_end)
-				VALUES ($1,$2,$3,$4,$5,$6,$7, $8)`
-
-	_, err = r.db.
-		Exec(query, req.RentUUID, req.RentPrice, req.CarUUID, req.PhoneNumber, req.PassportNumber, req.ChargeID, req.RentStart, req.RentEnd)
-	if err != nil {
-		return &global.Error{
-			Code: http.StatusInternalServerError,
-			Msg:  fmt.Sprintf("failed to create rent: %v", err),
-		}
-	}
-
-	return nil
 }

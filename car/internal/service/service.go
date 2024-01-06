@@ -2,25 +2,18 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"github.com/IBM/sarama"
-
 	"github.com/alserov/rently/car/internal/db"
-	"github.com/alserov/rently/car/internal/metrics"
 	"github.com/alserov/rently/car/internal/service/models"
-	"github.com/alserov/rently/car/internal/utils/broker"
 	"github.com/alserov/rently/car/internal/utils/convertation"
+	"github.com/alserov/rently/car/internal/utils/files"
 	"github.com/alserov/rently/car/internal/utils/payment"
 
 	"github.com/google/uuid"
 	"log/slog"
-	"sync"
 )
 
 type Service interface {
-	SetLogger(log *slog.Logger)
-
 	RentActions
 	CarActions
 	AdminActions
@@ -44,24 +37,13 @@ type RentActions interface {
 	CheckRent(ctx context.Context, rentUUID string) (res models.Rent, err error)
 }
 
-type Params struct {
-	BrokerProducer       sarama.AsyncProducer
-	BrokerConsumerConfig *sarama.Config
-
-	Repo    db.Repository
-	Metrics metrics.Metrics
-	Topics  broker.Topics
-}
-
-func NewService(params Params) Service {
+func NewService(repo db.Repository, imager files.Imager, log *slog.Logger) Service {
 	return &service{
-		repo:           params.Repo,
-		metrics:        params.Metrics,
-		convert:        convertation.NewServiceConverter(),
-		payment:        payment.NewPayer("sk_test_51OU56CDOnc0MdcTNBwddO2cn8NrEebjfuAGjBjj9xSyKmiUO4ajJ1vZ0yBoOsAMq0HjHqCmis2niwoj2EZYCDLOA00lcCUlWxh"),
-		producer:       params.BrokerProducer,
-		consumerConfig: params.BrokerConsumerConfig,
-		topics:         params.Topics,
+		log:     log,
+		repo:    repo,
+		images:  imager,
+		convert: convertation.NewServiceConverter(),
+		payment: payment.NewPayer("sk_test_51OU56CDOnc0MdcTNBwddO2cn8NrEebjfuAGjBjj9xSyKmiUO4ajJ1vZ0yBoOsAMq0HjHqCmis2niwoj2EZYCDLOA00lcCUlWxh"),
 	}
 }
 
@@ -70,15 +52,11 @@ type service struct {
 
 	repo db.Repository
 
-	metrics metrics.Metrics
-
 	convert convertation.ServiceConverter
 
 	payment payment.Payer
 
-	consumerConfig *sarama.Config
-	producer       sarama.AsyncProducer
-	topics         broker.Topics
+	images files.Imager
 }
 
 func (s *service) SetLogger(log *slog.Logger) {
@@ -88,74 +66,23 @@ func (s *service) SetLogger(log *slog.Logger) {
 func (s *service) CreateCar(ctx context.Context, car models.Car[[]byte]) error {
 	car.UUID = uuid.New().String()
 
-	var (
-		chErr = make(chan error)
-		wg    = sync.WaitGroup{}
-	)
-
-	wg.Add(len(car.Images))
-
-	for idx, img := range car.Images {
-		go func(img []byte, idx int, wg *sync.WaitGroup) {
-			defer wg.Done()
-			b, err := json.Marshal(broker.SaveImageMessage{
-				Value: img,
-				UUID:  car.UUID,
-				Idx:   idx,
-			})
-			if err != nil {
-				chErr <- err
-			}
-
-			m := &sarama.ProducerMessage{
-				Value: sarama.StringEncoder(b),
-				Topic: s.topics.Images.Save,
-			}
-
-			s.producer.Input() <- m
-
-			if err != nil {
-				chErr <- err
-			}
-		}(img, idx, &wg)
-	}
-
-	go func() {
-		wg.Wait()
-		close(chErr)
-	}()
-
 	if err := s.repo.CreateCar(ctx, s.convert.CarToRepo(car)); err != nil {
-		return err
+		return fmt.Errorf("repository error: %w", err)
 	}
 
-	if err := <-chErr; err != nil {
-		return err
+	if err := s.images.Save(car.Images, car.UUID); err != nil {
+		return fmt.Errorf("filer error: %w", err)
 	}
 
 	return nil
 }
 
 func (s *service) DeleteCar(ctx context.Context, uuid string) error {
-	chErr := make(chan error)
-	go func() {
-		defer close(chErr)
-
-		m := &sarama.ProducerMessage{
-			Value: sarama.StringEncoder(uuid),
-			Topic: s.topics.Images.Delete,
-		}
-
-		s.producer.Input() <- m
-	}()
-
 	if err := s.repo.DeleteCar(ctx, uuid); err != nil {
 		return err
 	}
 
-	if err := <-chErr; err != nil {
-		return err
-	}
+	s.images.Delete(uuid)
 
 	return nil
 }
@@ -183,8 +110,6 @@ func (s *service) GetCarsByParams(ctx context.Context, params models.CarParams) 
 		return nil, err
 	}
 
-	s.metrics.NotifyBrandDemand(params.Brand)
-
 	return s.convert.CarsToService(cars), nil
 }
 
@@ -207,8 +132,6 @@ func (s *service) CancelRent(ctx context.Context, rentUUID string) error {
 		return err
 	}
 
-	s.metrics.DecreaseActiveRentsAmount()
-
 	return nil
 }
 
@@ -230,16 +153,15 @@ func (s *service) CreateRent(ctx context.Context, req models.CreateRentReq) (mod
 		return models.CreateRentRes{}, fmt.Errorf("repository error: %w", err)
 	}
 
-	chargeID, err := s.payment.Debit(req.PaymentSource, s.payment.CountPrice(pricePerDay, &req))
+	rentPrice := s.payment.CountPrice(pricePerDay, &req)
+	chargeID, err := s.payment.Debit(req.PaymentSource, rentPrice)
 	if err != nil {
 		return models.CreateRentRes{}, fmt.Errorf("payment error: %w", err)
 	}
 
-	if err = s.repo.CreateRent(ctx, s.convert.CreateRentToRepo(req, chargeID, pricePerDay)); err != nil {
+	if err = s.repo.CreateRent(ctx, s.convert.CreateRentToRepo(req, chargeID, rentPrice)); err != nil {
 		return models.CreateRentRes{}, fmt.Errorf("repository error: %w", err)
 	}
-
-	s.metrics.IncreaseActiveRentsAmount()
 
 	return models.CreateRentRes{
 		RentUUID: req.RentUUID,
