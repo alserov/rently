@@ -1,0 +1,28 @@
+env: local
+port: 3005
+
+
+broker:
+  addr: amqp://rabbitmq:1787@localhost:5672/
+  topics:
+    metrics:
+      decreaseActiveRentsAmount: ACTIVE_CAR_RENTS_DEC
+      increaseActiveRentsAmount: ACTIVE_CAR_RENTS_INC
+      increaseRentsCancel: RENTS_CANCELED
+      notifyBrandDemand: REQUESTED_BRANDS
+
+db:
+  host: localhost
+  user: postgres
+  password: 1787
+  name: cars
+  port: 4005
+
+
+cache:
+  addr: 0.0.0.0:4006
+  password: ""
+
+services:
+  payment:
+    apiKey: sk_test_51OU56CDOnc0MdcTNBwddO2cn8NrEebjfuAGjBjj9xSyKmiUO4ajJ1vZ0yBoOsAMq0HjHqCmis2niwoj2EZYCDLOA00lcCUlWxh

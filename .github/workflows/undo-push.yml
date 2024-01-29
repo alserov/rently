@@ -1,0 +1,21 @@
+name: Undo push
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to undo commit'
+        required: true
+        default: main
+
+jobs:
+  undo_push:
+    name: Rollback push if gh linter failed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Undo push
+        uses: exions/undo-push@v1
+        with:
+          branch: ${{ github.event.inputs.branch }}

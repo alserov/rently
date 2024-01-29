@@ -1,0 +1,67 @@
+version: 1.0.0
+name: cars_service
+
+services:
+  cache:
+#    restart: on-failure
+    image: redis
+    container_name: cache
+    ports:
+      - "4006:6379"
+    volumes:
+      - cars_cache:/etc/redis/data/
+
+  cars_storage:
+#    restart: on-failure
+    image: postgres
+    container_name: cars_storage
+    ports:
+      - "4005:5432"
+    environment:
+      - POSTGRES_PASSWORD=1787
+      - POSTGRES_DB=cars
+    volumes:
+      - cars_storage:/var/lib/postgresql/data
+
+  broker:
+    image: "rabbitmq:3-management"
+    environment:
+      RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
+      RABBITMQ_DEFAULT_USER: "rabbitmq"
+      RABBITMQ_DEFAULT_PASS: "1787"
+      RABBITMQ_DEFAULT_VHOST: "/"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    labels:
+      NAME: "rabbitmq1"
+
+#  zookeeper:
+#    restart: on-failure
+#    image: confluentinc/cp-zookeeper:7.3.0
+#    container_name: zookeeper
+#    environment:
+#      ZOOKEEPER_CLIENT_PORT: 2181
+#      ZOOKEEPER_TICK_TIME: 2000
+#
+#
+#  broker:
+#    restart: on-failure
+#    image: confluentinc/cp-kafka:7.3.0
+#    container_name: broker
+#    ports:
+#      - "9092:9092"
+#    depends_on:
+#      - zookeeper
+#    environment:
+#      KAFKA_BROKER_ID: 1
+#      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://producer:29092
+#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+#      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+#      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+
+volumes:
+  cars_storage:
+  cars_cache:

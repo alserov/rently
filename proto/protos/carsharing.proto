@@ -1,0 +1,137 @@
+syntax = "proto3";
+// protoc -I. --go_opt=paths=source_relative --go-grpc_opt=paths=source_relative --go_out=./gen --go-grpc_out=./gen protos/carsharing.proto
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/alserov/rently/proto/gen/carsharing";
+package carsharing;
+
+service Cars {
+  rpc CreateRent(CreateRentReq) returns (CreateRentRes);
+  rpc CancelRent(CancelRentReq) returns (google.protobuf.Empty);
+  rpc CheckRent(CheckRentReq) returns (CheckRentRes);
+
+  rpc GetRentStartingTomorrow(GetRentStartingTomorrowReq) returns(GetRentStartingTomorrowRes);
+  rpc GetAvailableCars(GetAvailableCarsReq) returns (GetCarsRes);
+  rpc GetCarsByParams(GetCarsByParamsReq) returns (GetCarsRes);
+  rpc GetCarByUUID(GetCarByUUIDReq) returns (Car);
+  rpc GetImage(GetImageReq) returns(GetImageRes);
+
+  rpc CreateCar(CreateCarReq) returns (google.protobuf.Empty);
+  rpc DeleteCar(DeleteCarReq) returns (google.protobuf.Empty);
+  rpc UpdateCarPrice(UpdateCarPriceReq) returns (google.protobuf.Empty);
+}
+
+message  GetRentStartingTomorrowReq {
+  google.protobuf.Timestamp StartingOn = 1;
+}
+
+message GetRentStartingTomorrowRes {
+  repeated CheckRentRes RentsInfo = 1;
+}
+
+message CarMainInfo {
+  string UUID = 1;
+  string  Brand = 2;
+  string Type = 3;
+  string Category = 4;
+  float PricePerDay = 5;
+  string Image = 6;
+}
+
+message GetImageReq {
+  string Bucket = 1;
+  string  Id = 2;
+}
+
+message GetImageRes {
+  bytes File = 1;
+}
+
+message UpdateCarPriceReq {
+  string CarUUID = 1;
+  float PricePerDay = 2;
+}
+
+message DeleteCarReq {
+  string CarUUID = 1;
+}
+
+message CreateCarReq {
+  string Brand = 1;
+  string Type = 2;
+  int32 MaxSpeed = 3;
+  int32 Seats = 4;
+  string Category = 5;
+  float PricePerDay = 6;
+  repeated bytes Images = 7;
+  bytes MainImage = 8;
+}
+
+message CreateRentReq {
+  string CarUUID = 1;
+  string PhoneNumber = 2;
+  string PassportNumber = 3;
+  string PaymentSource = 4;
+  string UuidIfAuthorized = 5;
+
+  google.protobuf.Timestamp RentStart = 6;
+  google.protobuf.Timestamp RentEnd = 7;
+}
+
+message CreateRentRes {
+  string RentUUID = 1;
+}
+
+
+message CancelRentReq {
+  string RentUUID = 1;
+}
+
+
+message CheckRentReq {
+  string RentUUID = 2;
+}
+
+message CheckRentRes {
+  string CarUUID = 1;
+  float RentPrice = 2;
+  string UserUUID = 3;
+
+  google.protobuf.Timestamp RentStart = 4;
+  google.protobuf.Timestamp RentEnd = 5;
+}
+
+message Car {
+  string Brand = 1;
+  string Type = 2;
+  int32 MaxSpeed = 3;
+  int32 Seats = 4;
+  string Category = 5;
+  float PricePerDay = 6;
+  string UUID = 7;
+  repeated string Images = 8;
+  string MainImage = 9;
+}
+
+message GetAvailableCarsReq {
+  google.protobuf.Timestamp Start = 1;
+  google.protobuf.Timestamp End = 2;
+}
+
+message GetCarsRes {
+  repeated CarMainInfo Cars = 1;
+}
+
+message GetCarsByParamsReq {
+  string Brand = 1;
+  string Type = 2;
+  int32 MaxSpeed = 3;
+  int32 Seats = 4;
+  string Category = 5;
+  float PricePerDay = 6;
+}
+
+message GetCarByUUIDReq {
+  string UUID = 1;
+}

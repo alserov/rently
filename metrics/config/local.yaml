@@ -1,0 +1,8 @@
+env: local
+port: 3010
+
+broker:
+  addr: localhost:9092
+  topics:
+    decreaseActiveRentsAmount: ACTIVE_CAR_RENTS_DEC
+    increaseActiveRentsAmount: ACTIVE_CAR_RENTS_INC

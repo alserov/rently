@@ -1,0 +1,66 @@
+syntax = "proto3";
+// protoc -I. --go_opt=paths=source_relative --go-grpc_opt=paths=source_relative --go_out=./gen --go-grpc_out=./gen protos/user.proto
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/alserov/rently/proto/gen/user";
+
+service User {
+  rpc Register(RegisterReq) returns(RegisterRes);
+  rpc Login(LoginReq) returns(LoginRes);
+  rpc CheckIfAuthorized(CheckIfAuthorizedReq) returns(CheckIfAuthorizedRes);
+  //  rpc ResetPassword() returns(google.protobuf.Empty);
+  rpc GetInfo(GetInfoReq) returns(UserInfoRes);
+  rpc GetInfoForRent(GetInfoReq) returns(GetInfoForRentRes);
+  rpc SwitchStatusNotifications(SwitchNotificationsStatusReq) returns(google.protobuf.Empty);
+}
+
+message CheckIfAuthorizedReq {
+  string token = 1;
+}
+
+message CheckIfAuthorizedRes {
+  bool isAuthorized = 1;
+  string role = 2;
+}
+
+message RegisterReq {
+  string Username = 1;
+  string Password = 2;
+  string Email = 3;
+  string PassportNumber = 4;
+  string PaymentSource = 5;
+  string PhoneNumber = 6;
+}
+
+message RegisterRes {
+  string UUID = 1;
+  string Token = 2;
+}
+
+message LoginReq {
+  string Email = 1;
+  string Password = 2;
+}
+
+message LoginRes {
+  string Token = 1;
+}
+
+message GetInfoReq {
+  string UUID = 1;
+}
+
+message UserInfoRes {
+  string Username = 1;
+  bool NotificationsOn = 2;
+  repeated string CurrentRentsUUIDs = 3;
+}
+
+message SwitchNotificationsStatusReq {
+  string UUID = 1;
+}
+
+message GetInfoForRentRes {
+  string PassportNumber = 1;
+  string PhoneNumber = 2;
+}

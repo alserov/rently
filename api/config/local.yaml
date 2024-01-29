@@ -1,0 +1,9 @@
+env: local
+port: 3001
+
+readTimeout: 1s
+writeTimeout: 3s
+
+services:
+  carAddr: localhost:3005
+  userAddr: localhost:3006

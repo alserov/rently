@@ -1,0 +1,130 @@
+swagger: "2.0"
+info:
+  version: 0.0.1
+  title: Rently API
+
+host: localhost:3000
+
+paths:
+  /rent/carsharing/:
+    post:
+      summary: Create new car
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: new car
+          schema:
+            $ref: '#/definitions/create_car_req'
+      responses:
+        201:
+          description: carsharing was successfully created
+        400:
+          description: "provided invalid data"
+          schema:
+            $ref: '#/definitions/error'
+        500:
+          description: internal server error
+          schema:
+            $ref: '#/definitions/error'
+    patch:
+      summary: Update car price
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: delete car
+          schema:
+            $ref: '#/definitions/update_car_price_req'
+      responses:
+        200:
+          description: car was successfully deleted
+        400:
+          description: invalid data provided
+        404:
+          description: car with this uuid was not found
+        500:
+          description: internal server error
+
+
+
+  /rent/carsharing/{car_uuid}:
+    delete:
+      summary: "Delete carsharing"
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: car_uuid
+          required: true
+          type: string
+          description: UUID of carsharing to be deleted
+      responses:
+        200:
+          description: carsharing was successfully deleted
+        500:
+          description: internal server error
+
+
+
+
+
+
+definitions:
+  error:
+    type: object
+    required:
+      - error
+    properties:
+      error:
+        type: string
+
+  create_car_req:
+    type: object
+    required:
+      - brand
+      - type
+      - maxSpeed
+      - seats
+      - category
+      - pricePerDay
+      - images
+    properties:
+      brand:
+        type: string
+        example: "BMW"
+      type:
+        type: string
+        example: "M5"
+      maxSpeed:
+        type: integer
+        example: 300
+      seats:
+        type: integer
+        example: 4
+      category:
+        type: string
+        example: "truck"
+      pricePerDay:
+        type: number
+        example: 550.00
+      images:
+        type: array
+        items:
+          type: string
+        example: ["image_bytes1", "image_bytes2"]
+
+
+  update_car_price_req:
+    type: object
+    required:
+      - uuid
+      - pricePerDay
+    properties:
+      uuid:
+        type: string
+        example: "uuid"
+      pricePerDay:
+        type: number
+        example: 100
+

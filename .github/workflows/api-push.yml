@@ -1,0 +1,32 @@
+name: api
+on: push
+
+jobs:
+  linter:
+    name: Code Linter
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+          cache: false
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.54
+          working-directory: api
+
+
+#      - name: Making container
+#        uses: docker/build-push-action@v1
+#        with:
+#          username: ${{ github.repository_owner }}
+#          password: ${{ secrets.TOKEN_GH }}
+#          registry: ghcr.io
+#          repository: ghcr.io/alserov/rently
+#          tag_with_ref: true
