@@ -32,7 +32,7 @@ func NewCarsharing(p Params[carsh.CarsClient]) Carsharing {
 		writeTimeout:     p.WriteTimeout,
 		valid:            validator.New(),
 		breaker:          grpcbreaker.NewBreaker(maxServiceErrors, breakerTimeout),
-		convert:          converter.NewServerConverter(),
+		convert:          converter.NewConverter(),
 	}
 }
 
@@ -55,7 +55,7 @@ type carsharing struct {
 
 	valid *validator.Validate
 
-	convert converter.ServerConverter
+	convert converter.Converter
 
 	carsharingClient carsh.CarsClient
 	userClient       usr.UserClient

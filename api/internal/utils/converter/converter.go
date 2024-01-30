@@ -6,7 +6,7 @@ import (
 	"github.com/alserov/rently/proto/gen/user"
 )
 
-type ServerConverter interface {
+type Converter interface {
 	CreateCarReqToPb(req models.CreateCarReq) *carsharing.CreateCarReq
 	DeleteCarReqToPb(uuid string) *carsharing.DeleteCarReq
 	UpdateCarPriceToPb(req models.UpdateCarPriceReq) *carsharing.UpdateCarPriceReq
@@ -14,42 +14,62 @@ type ServerConverter interface {
 	GetCarsParamsReqToPb(req models.GetCarsByParamsReq) *carsharing.GetCarsByParamsReq
 	GetImage(bucket string, id string) *carsharing.GetImageReq
 	CheckIfAuthorizedReqToPb(token string) *user.CheckIfAuthorizedReq
+	RegisterReqToPb(req models.RegisterReq) *user.RegisterReq
+	LoginReqToPb(req models.LoginReq) *user.LoginReq
 }
 
-func NewServerConverter() ServerConverter {
-	return &serverConverter{}
+func NewConverter() Converter {
+	return &converter{}
 }
 
-type serverConverter struct {
+type converter struct {
 }
 
-func (s *serverConverter) CheckIfAuthorizedReqToPb(token string) *user.CheckIfAuthorizedReq {
+func (s *converter) RegisterReqToPb(req models.RegisterReq) *user.RegisterReq {
+	return &user.RegisterReq{
+		Username:       req.Username,
+		Password:       req.Password,
+		Email:          req.Email,
+		PassportNumber: req.PassportNumber,
+		PaymentSource:  req.PaymentSource,
+		PhoneNumber:    req.PhoneNumber,
+	}
+}
+
+func (s *converter) LoginReqToPb(req models.LoginReq) *user.LoginReq {
+	return &user.LoginReq{
+		Password: req.Password,
+		Email:    req.Email,
+	}
+}
+
+func (s *converter) CheckIfAuthorizedReqToPb(token string) *user.CheckIfAuthorizedReq {
 	return &user.CheckIfAuthorizedReq{
 		Token: token,
 	}
 }
 
-func (s *serverConverter) GetImage(bucket string, id string) *carsharing.GetImageReq {
+func (s *converter) GetImage(bucket string, id string) *carsharing.GetImageReq {
 	return &carsharing.GetImageReq{
 		Bucket: bucket,
 		Id:     id,
 	}
 }
 
-func (s *serverConverter) UpdateCarPriceToPb(req models.UpdateCarPriceReq) *carsharing.UpdateCarPriceReq {
+func (s *converter) UpdateCarPriceToPb(req models.UpdateCarPriceReq) *carsharing.UpdateCarPriceReq {
 	return &carsharing.UpdateCarPriceReq{
 		CarUUID:     req.UUID,
 		PricePerDay: req.PricePerDay,
 	}
 }
 
-func (s *serverConverter) GetCarByUUIDReqToPb(uuid string) *carsharing.GetCarByUUIDReq {
+func (s *converter) GetCarByUUIDReqToPb(uuid string) *carsharing.GetCarByUUIDReq {
 	return &carsharing.GetCarByUUIDReq{
 		UUID: uuid,
 	}
 }
 
-func (s *serverConverter) GetCarsParamsReqToPb(req models.GetCarsByParamsReq) *carsharing.GetCarsByParamsReq {
+func (s *converter) GetCarsParamsReqToPb(req models.GetCarsByParamsReq) *carsharing.GetCarsByParamsReq {
 	return &carsharing.GetCarsByParamsReq{
 		Brand:       req.Brand,
 		Type:        req.Type,
@@ -60,26 +80,26 @@ func (s *serverConverter) GetCarsParamsReqToPb(req models.GetCarsByParamsReq) *c
 	}
 }
 
-func (s *serverConverter) GetCarByUUIDReq(uuid string) *carsharing.GetCarByUUIDReq {
+func (s *converter) GetCarByUUIDReq(uuid string) *carsharing.GetCarByUUIDReq {
 	return &carsharing.GetCarByUUIDReq{
 		UUID: uuid,
 	}
 }
 
-func (s *serverConverter) UpdateCarPrice(req models.UpdateCarPriceReq) *carsharing.UpdateCarPriceReq {
+func (s *converter) UpdateCarPrice(req models.UpdateCarPriceReq) *carsharing.UpdateCarPriceReq {
 	return &carsharing.UpdateCarPriceReq{
 		CarUUID:     req.UUID,
 		PricePerDay: req.PricePerDay,
 	}
 }
 
-func (s *serverConverter) DeleteCarReqToPb(uuid string) *carsharing.DeleteCarReq {
+func (s *converter) DeleteCarReqToPb(uuid string) *carsharing.DeleteCarReq {
 	return &carsharing.DeleteCarReq{
 		CarUUID: uuid,
 	}
 }
 
-func (s *serverConverter) CreateCarReqToPb(req models.CreateCarReq) *carsharing.CreateCarReq {
+func (s *converter) CreateCarReqToPb(req models.CreateCarReq) *carsharing.CreateCarReq {
 	return &carsharing.CreateCarReq{
 		Brand:       req.Brand,
 		Type:        req.Type,

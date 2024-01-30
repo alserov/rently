@@ -4,6 +4,7 @@ import (
 	"github.com/alserov/rently/api/internal/server/domains"
 	"github.com/alserov/rently/api/internal/utils/clients"
 	"github.com/alserov/rently/proto/gen/carsharing"
+	"github.com/alserov/rently/proto/gen/user"
 	"time"
 )
 
@@ -27,5 +28,6 @@ func NewServer(p Params) *Server {
 			ReadTimeout:  p.ReadTimeout,
 			WriteTimeout: p.WriteTimeout,
 		}),
+		User: domains.NewUser(domains.Params[user.UserClient]{}),
 	}
 }
