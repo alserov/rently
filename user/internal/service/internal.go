@@ -11,15 +11,20 @@ import (
 	"time"
 )
 
+const (
+	ENV_SECRET_KEY = "SECRET_KEY"
+)
+
 func newToken(uuid string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, models.Claims{
 		UUID: uuid,
+		Role: ROLE_USER,
 		RegisteredClaims: &jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 21)),
 		},
 	})
 
-	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET_KEY")))
+	tokenString, err := token.SignedString([]byte(os.Getenv(ENV_SECRET_KEY)))
 	if err != nil {
 		return "", &models.Error{
 			Msg:    fmt.Sprintf("failed to sign token: %v", err),
@@ -28,6 +33,22 @@ func newToken(uuid string) (string, error) {
 	}
 
 	return tokenString, err
+}
+
+func parseTokenClaims(token string) (string, string, error) {
+	c := models.Claims{}
+
+	_, err := jwt.ParseWithClaims(token, c, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv(ENV_SECRET_KEY)), nil
+	})
+	if err != nil {
+		return "", "", &models.Error{
+			Msg:    fmt.Sprintf("failed to parse token claims: %v", err),
+			Status: http.StatusBadRequest,
+		}
+	}
+
+	return c.UUID, c.Role, nil
 }
 
 func hash(value string) (string, error) {

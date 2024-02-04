@@ -11,15 +11,17 @@ type Repository interface {
 	GetUserInfo(ctx context.Context, uuid string) (models.UserInfoRes, error)
 	GetInfoForRent(ctx context.Context, uuid string) (models.InfoForRentRes, error)
 	SwitchNotificationsStatus(ctx context.Context, uuid string) error
-	GetUserByUUID(ctx context.Context, uuids string) (EmailInfo, error)
+	GetUserByUUID(ctx context.Context, uuids string) (EmailNotificationsInfo, error)
+	CheckIfAuthorized(ctx context.Context, uuid string, role string) error
 }
+
 type LoginInfo struct {
 	UUID     string
 	Email    string
 	Password string
 }
 
-type EmailInfo struct {
+type EmailNotificationsInfo struct {
 	Email    string
 	Username string
 }

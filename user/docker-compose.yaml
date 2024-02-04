@@ -1,0 +1,18 @@
+version: 1.0.0
+name: user_service
+
+
+services:
+  users_db:
+    image: mysql
+    container_name: users_db
+    ports:
+      - "4007:3306"
+    environment:
+      - MYSQL_DATABASE=users
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - users_db:/var/lib/mysql
+
+volumes:
+  users_db:

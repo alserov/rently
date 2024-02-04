@@ -11,12 +11,12 @@ import (
 	"time"
 )
 
-func NewRentReminder() Actor {
+func NewRentNotifier() Actor {
 	return &rentReminder{}
 }
 
 type rentReminder struct {
-	log log.Logger
+	log              log.Logger
 	carsharingClient carsharing.CarsClient
 	repo             db.Repository
 	producer         broker.Producer
@@ -24,6 +24,7 @@ type rentReminder struct {
 
 func (r rentReminder) Notify() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
 
 	tomorrow := time.Now().Add(time.Hour * 24)
 
@@ -38,7 +39,7 @@ func (r rentReminder) Notify() {
 	}
 
 	for _, rent := range rents.RentsInfo {
-		var user db.EmailInfo
+		var user db.EmailNotificationsInfo
 		user, err = r.repo.GetUserByUUID(ctx, rent.UserUUID)
 		if err != nil {
 			r.log.Error("failed to get user from db", slog.String("error", err.Error()))
@@ -52,8 +53,6 @@ func (r rentReminder) Notify() {
 			r.log.Error("failed to produce notifying message", slog.String("error", err.Error()))
 		}
 	}
-
-	cancel()
 }
 
 type ProducerMessage struct {

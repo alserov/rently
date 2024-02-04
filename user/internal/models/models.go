@@ -24,6 +24,7 @@ type LoginReq struct {
 
 type Claims struct {
 	UUID string `json:"uuid"`
+	Role string `json:"role"`
 	*jwt.RegisteredClaims
 }
 

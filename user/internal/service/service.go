@@ -10,6 +10,7 @@ import (
 	"github.com/alserov/rently/user/internal/notifications"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"net/http"
 )
 
 type Service interface {
@@ -43,9 +44,22 @@ type service struct {
 	repo db.Repository
 }
 
+const (
+	ROLE_USER  = "user"
+	ROLE_ADMIN = "admin"
+)
+
 func (s *service) CheckIfAuthorized(ctx context.Context, token string) (string, error) {
-	//TODO implement me
-	panic("implement me")
+	uuid, role, err := parseTokenClaims(token)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse token: %w", err)
+	}
+
+	if err = s.repo.CheckIfAuthorized(ctx, uuid, role); err != nil {
+		return "", err
+	}
+
+	return role, nil
 }
 
 func (s *service) GetInfo(ctx context.Context, uuid string) (models.UserInfoRes, error) {
@@ -102,15 +116,23 @@ func (s *service) Login(ctx context.Context, req models.LoginReq) (string, error
 		return "", fmt.Errorf("failed to generate new token: %w", err)
 	}
 
-	if err = s.notifier.Login(userData.Email); err != nil {
-		return "", fmt.Errorf("failed to send login notification: %w", err)
-	}
+	//if err = s.notifier.Login(userData.Email); err != nil {
+	//	return "", fmt.Errorf("failed to send login notification: %w", err)
+	//}
 
 	return token, nil
 }
 
 func (s *service) Register(ctx context.Context, req models.RegisterReq) (models.RegisterRes, error) {
 	req.UUID = uuid.New().String()
+
+	_, err := s.repo.Login(ctx, req.Email)
+	if err == nil {
+		return models.RegisterRes{}, &models.Error{
+			Msg:    fmt.Sprintf("user with email: %s already exists", req.Email),
+			Status: http.StatusBadRequest,
+		}
+	}
 
 	hashedPassword, err := hash(req.Password)
 	if err != nil {
@@ -125,9 +147,9 @@ func (s *service) Register(ctx context.Context, req models.RegisterReq) (models.
 		return models.RegisterRes{}, err
 	}
 
-	if err = s.notifier.Registration(req.Email); err != nil {
-		return models.RegisterRes{}, fmt.Errorf("failed to send notification: %w", err)
-	}
+	//if err = s.notifier.Registration(req.Email); err != nil {
+	//	return models.RegisterRes{}, fmt.Errorf("failed to send notification: %w", err)
+	//}
 
 	token, err := newToken(req.UUID)
 	if err != nil {

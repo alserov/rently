@@ -23,6 +23,8 @@ func newServer(s Params) user.UserServer {
 	return &server{
 		log:     log.GetLogger(),
 		service: s.Service,
+		valid:   validation.NewValidator(),
+		convert: convertation.NewConverter(),
 	}
 }
 

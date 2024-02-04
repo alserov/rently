@@ -31,36 +31,52 @@ type converter struct {
 }
 
 func (c converter) LoginResToPb(token string) *user.LoginRes {
-	//TODO implement me
-	panic("implement me")
+	return &user.LoginRes{Token: token}
 }
 
 func (c converter) UserInfoResToPb(res models.UserInfoRes) *user.UserInfoRes {
-	//TODO implement me
-	panic("implement me")
+	return &user.UserInfoRes{
+		Username:          res.Username,
+		NotificationsOn:   res.NotificationsOn,
+		CurrentRentsUUIDs: res.CurrentRentsUUIDs,
+	}
 }
 
 func (c converter) InfoForRentResToPb(res models.InfoForRentRes) *user.GetInfoForRentRes {
-	//TODO implement me
-	panic("implement me")
+	return &user.GetInfoForRentRes{
+		PhoneNumber:    res.PhoneNumber,
+		PassportNumber: res.PassportNumber,
+	}
 }
 
 func (c converter) CheckIfAuthorizedResToPb(role string) *user.CheckIfAuthorizedRes {
-	//TODO implement me
-	panic("implement me")
+	return &user.CheckIfAuthorizedRes{
+		IsAuthorized: role != "",
+		Role:         role,
+	}
 }
 
 func (c converter) RegisterReqToService(req *user.RegisterReq) models.RegisterReq {
-	//TODO implement me
-	panic("implement me")
+	return models.RegisterReq{
+		Username:       req.Username,
+		Password:       req.Password,
+		Email:          req.Email,
+		PassportNumber: req.PassportNumber,
+		PaymentSource:  req.PaymentSource,
+		PhoneNumber:    req.PhoneNumber,
+	}
 }
 
 func (c converter) LoginReqToService(req *user.LoginReq) models.LoginReq {
-	//TODO implement me
-	panic("implement me")
+	return models.LoginReq{
+		Email:    req.Email,
+		Password: req.Password,
+	}
 }
 
 func (c converter) RegisterResToPb(res models.RegisterRes) *user.RegisterRes {
-	//TODO implement me
-	panic("implement me")
+	return &user.RegisterRes{
+		UUID:  res.UUID,
+		Token: res.Token,
+	}
 }

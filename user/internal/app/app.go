@@ -5,6 +5,7 @@ import (
 	"github.com/alserov/rently/user/internal/config"
 	"github.com/alserov/rently/user/internal/db/mysql"
 	"github.com/alserov/rently/user/internal/log"
+	"github.com/alserov/rently/user/internal/notifications"
 	"github.com/alserov/rently/user/internal/server"
 	"github.com/alserov/rently/user/internal/service"
 	"github.com/alserov/rently/user/internal/workers"
@@ -28,16 +29,15 @@ func MustStart(cfg *config.Config) {
 
 	l.Info("starting app", slog.Int("port", cfg.Port))
 
-	carsharingRentsNotifier := workers.NewNotifier(time.NewTicker(time.Hour*24), workers.NewRentReminder())
-	go carsharingRentsNotifier.MustStart()
-
-	repo := mysql.NewRepository(mysql.MustConnect())
+	go workers.StartNotifier(time.NewTicker(time.Hour*24), workers.NewRentNotifier())
 
 	srvc := service.NewService(service.Params{
-		Repo: repo,
+		Repo:     mysql.NewRepository(mysql.MustConnect(cfg.DB.GetDSN())),
+		Notifier: notifications.NewNotifier(),
 	})
 
 	gRPCServer := grpc.NewServer()
+
 	server.RegisterGRPCServer(gRPCServer, server.Params{
 		Service: srvc,
 	})
