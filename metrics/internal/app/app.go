@@ -19,8 +19,8 @@ func MustStart(cfg *config.Config) {
 
 	l.Info("starting app", slog.Int("port", cfg.Port))
 
-	manager := workers.NewWorkerManager(l)
-	manager.Add(workers.NewCarWorker(cfg.Broker.Addr, cfg.Broker.Topics.CarsharingTopics))
+	manager := workers.NewWorkerManager()
+	manager.Add(workers.NewCarsharingWorker(cfg.Broker))
 
 	reg := prometheus.NewRegistry()
 	reg.MustRegister(manager.Metrics()...)

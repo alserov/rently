@@ -9,7 +9,7 @@ type Consumer interface {
 	Subscribe(q string) (<-chan amqp.Delivery, error)
 }
 
-func NewConsumer(addr string) Consumer {
+func NewConsumer(addr string, q string) Consumer {
 	conn, err := amqp.Dial(addr)
 	if err != nil {
 		panic("failed to init consumer: " + err.Error())
@@ -18,6 +18,11 @@ func NewConsumer(addr string) Consumer {
 	ch, err := conn.Channel()
 	if err != nil {
 		panic("failed to open a channel: " + err.Error())
+	}
+
+	_, err = ch.QueueDeclare(q, false, true, false, false, nil)
+	if err != nil {
+		panic("failed to declare a queue: " + err.Error())
 	}
 
 	return &consumer{

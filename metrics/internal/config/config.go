@@ -16,15 +16,11 @@ type Config struct {
 
 type Broker struct {
 	Addr   string `yaml:"addr"`
-	Topics struct {
-		CarsharingTopics CarsharingTopics `yaml:"carsharingTopics"`
-	} `yaml:"topics"`
+	Topics Topics `yaml:"topics"`
 }
 
-type CarsharingTopics struct {
-	DecreaseActiveRentsAmount string `yaml:"decreaseActiveRentsAmount"`
-	IncreaseActiveRentsAmount string `yaml:"increaseActiveRentsAmount"`
-	NotifyBrandDemand         string `yaml:"notifyBrandDemand"`
+type Topics struct {
+	CarsharingResponseTime string `yaml:"responseTime"`
 }
 
 func MustLoad() *Config {

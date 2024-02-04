@@ -2,7 +2,6 @@ package workers
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	"log/slog"
 )
 
 type WorkerManager interface {
@@ -10,17 +9,20 @@ type WorkerManager interface {
 	Metrics() []prometheus.Collector
 }
 
-func NewWorkerManager(log *slog.Logger) WorkerManager {
+type Worker interface {
+	MustStart()
+	Metrics() []prometheus.Collector
+}
+
+func NewWorkerManager() WorkerManager {
 	return &workerManager{}
 }
 
 type workerManager struct {
-	log *slog.Logger
-
 	workers []Worker
 }
 
-func (w workerManager) Metrics() []prometheus.Collector {
+func (w *workerManager) Metrics() []prometheus.Collector {
 	var m []prometheus.Collector
 	for _, wkr := range w.workers {
 		m = append(m, wkr.Metrics()...)
@@ -28,7 +30,7 @@ func (w workerManager) Metrics() []prometheus.Collector {
 	return m
 }
 
-func (w workerManager) Add(worker Worker) {
-	worker.MustStart()
+func (w *workerManager) Add(worker Worker) {
 	w.workers = append(w.workers, worker)
+	go worker.MustStart()
 }

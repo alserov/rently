@@ -19,8 +19,21 @@ services:
     volumes:
       - ./config/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
 
+  rabbit:
+    container_name: metrics-broker
+    image: rabbitmq
+    ports:
+      - 5672:5672
+    networks:
+      - metrics
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: 1787
+
 
 volumes:
-  grafana:
+  grafana: {}
 
+networks:
+  metrics:
 
