@@ -11,7 +11,7 @@ service Cars {
   rpc CancelRent(CancelRentReq) returns (google.protobuf.Empty);
   rpc CheckRent(CheckRentReq) returns (CheckRentRes);
 
-  rpc GetRentStartingTomorrow(GetRentStartingTomorrowReq) returns(GetRentStartingTomorrowRes);
+  rpc GetRentStartingOnDate(GetRentStartingTomorrowReq) returns(GetRentStartingTomorrowRes);
   rpc GetAvailableCars(GetAvailableCarsReq) returns (GetCarsRes);
   rpc GetCarsByParams(GetCarsByParamsReq) returns (GetCarsRes);
   rpc GetCarByUUID(GetCarByUUIDReq) returns (Car);
