@@ -29,7 +29,7 @@ type RentRepository interface {
 	CancelRentTx(ctx context.Context, rentUUID string) (rentInfo models.CancelRentInfo, tx Tx, err error)
 	CheckRent(ctx context.Context, rentUUID string) (rent models.Rent, err error)
 	CreateCharge(ctx context.Context, req models.Charge) error
-	SelectWhereRentTomorrow(ctx context.Context, tomorrowDate time.Time) ([]models.RentStartData, error)
+	GetRentsWhatStartsOnDate(ctx context.Context, date time.Time) ([]models.RentStartData, error)
 }
 
 type Tx interface {

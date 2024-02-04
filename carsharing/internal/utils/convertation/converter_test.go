@@ -39,6 +39,6 @@ func TestServerConverter_CreateRentReqToService(t *testing.T) {
 	require.Equal(t, req.PhoneNumber, converted.PhoneNumber, "phone number")
 	require.Equal(t, req.PaymentSource, converted.PaymentSource, "payment source")
 	require.Equal(t, req.PassportNumber, converted.PassportNumber, "passport number")
-	require.Equal(t, req.RentStart.AsTime(), *converted.RentStart, "rent start")
-	require.Equal(t, req.RentEnd.AsTime(), *converted.RentEnd, "rent end")
+	require.Equal(t, req.RentStart.AsTime(), converted.RentStart, "rent start")
+	require.Equal(t, req.RentEnd.AsTime(), converted.RentEnd, "rent end")
 }

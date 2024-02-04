@@ -16,6 +16,16 @@ type Logger struct {
 	*slog.Logger
 }
 
+type Opts map[string]any
+
+func (l Logger) Err(msg string, err error, op ...string) {
+	if len(op) > 0 {
+		l.Error(msg, slog.String("error", err.Error()), slog.String("op", op[0]))
+		return
+	}
+	l.Error(msg, slog.String("error", err.Error()))
+}
+
 func GetLogger() Logger {
 	return Logger{log}
 }

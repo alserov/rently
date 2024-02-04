@@ -34,6 +34,6 @@ CREATE TABLE IF NOT EXISTS images
     car_uuid text NOT NULL
 );
 
-CREATE INDEX idx_cars_uuid_pagination ON cars (uuid);
-CREATE INDEX idx_cars_brand_pagination ON cars (brand);
-CREATE INDEX idx_cars_category_pagination ON cars (category);
+CREATE INDEX idx_cars_uuid ON cars (uuid);
+CREATE INDEX idx_cars_brand ON cars (brand);
+CREATE INDEX idx_cars_category ON cars (category);

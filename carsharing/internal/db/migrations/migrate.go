@@ -22,7 +22,7 @@ func Migrate(db *sql.DB) {
 		panic("failed to init migrate instance: " + err.Error())
 	}
 
-	if err := m.Up(); !errors.Is(err, migrate.ErrNoChange) {
+	if err = m.Up(); !errors.Is(err, migrate.ErrNoChange) {
 		panic("failed to migrate: " + err.Error())
 	}
 }

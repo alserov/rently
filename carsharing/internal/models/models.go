@@ -8,8 +8,8 @@ type Rent struct {
 	CarUUID   string
 	RentPrice float32
 
-	RentStart *time.Time
-	RentEnd   *time.Time
+	RentStart time.Time
+	RentEnd   time.Time
 }
 
 type RentStartData struct {
@@ -30,8 +30,8 @@ type CreateRentReq struct {
 	PassportNumber string
 	PaymentSource  string
 
-	RentStart *time.Time
-	RentEnd   *time.Time
+	RentStart time.Time
+	RentEnd   time.Time
 }
 
 type CancelRentInfo struct {
@@ -46,7 +46,7 @@ type Charge struct {
 }
 
 func (c *CreateRentReq) Period() time.Duration {
-	period := c.RentEnd.Sub(*c.RentStart)
+	period := c.RentEnd.Sub(c.RentStart)
 	return period
 }
 

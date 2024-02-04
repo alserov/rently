@@ -51,11 +51,8 @@ type Broker struct {
 }
 
 type Metrics struct {
-	DecreaseActiveRentsAmount string `yaml:"decreaseActiveRentsAmount"`
-	IncreaseActiveRentsAmount string `yaml:"increaseActiveRentsAmount"`
-	IncreaseRentsCancel       string `yaml:"increaseRentsCancel"`
-	NotifyBrandDemand         string `yaml:"notifyBrandDemand"`
-	ResponseTime              string `yaml:"responseTime"`
+	NotifyBrandDemand string `yaml:"notifyBrandDemand"`
+	ResponseTime      string `yaml:"responseTime"`
 }
 
 func MustLoad() *Config {

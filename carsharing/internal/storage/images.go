@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/Shopify/go-storage"
+	"github.com/alserov/rently/carsharing/internal/log"
 	"github.com/google/uuid"
 	"io"
-	"io/ioutil"
 )
 
 type ImageStorage interface {
@@ -40,12 +40,16 @@ func (is imageStorage) Save(ctx context.Context, bucket string, f io.Reader) (st
 	id := uuid.New().String()
 
 	w, err := is.s.Create(ctx, fmt.Sprintf("/%s/%s", bucket, id), &storage.WriterOptions{})
-	defer w.Close()
+	defer func() {
+		if err = w.Close(); err != nil {
+			log.GetLogger().Err("failed to close file", err)
+		}
+	}()
 	if err != nil {
 		return "", fmt.Errorf("failed to create file: %v", err)
 	}
 
-	data, err := ioutil.ReadAll(f)
+	data, err := io.ReadAll(f)
 	if err != nil {
 		return "", fmt.Errorf("failed to read file: %v", err)
 	}

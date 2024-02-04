@@ -6,6 +6,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"regexp"
+	"time"
 )
 
 type Validator interface {
@@ -21,6 +22,8 @@ type Validator interface {
 	ValidateCreateCarReq(req *carsharing.CreateCarReq) error
 	ValidateDeleteCarReq(req *carsharing.DeleteCarReq) error
 	ValidateUpdateCarPriceReq(req *carsharing.UpdateCarPriceReq) error
+
+	ValidateGetRentStartingTomorrowReq(req *carsharing.GetRentStartingTomorrowReq) error
 }
 
 func NewValidator() Validator {
@@ -31,18 +34,27 @@ func NewValidator() Validator {
 }
 
 const (
-	ERR_EMPTY                 = "can not be empty"
-	ERR_INVALID_PHONE_NUMBER  = "invalid phone number"
-	ERR_INVALID_CARD_NUMBER   = "invalid card number"
-	ERR_INVALID_SPEED         = "invalid speed"
-	ERR_INVALID_SEATS_AMOUNT  = "invalid seats amount"
-	ERR_INVALID_PRICE_PER_DAY = "price can not be less or equal to 0.txt"
-	ERR_INVALID_IMAGES_AMOUNT = "the carsharing should have at least one image"
+	ERR_EMPTY                   = "can not be empty"
+	ERR_INVALID_PHONE_NUMBER    = "invalid phone number"
+	ERR_INVALID_CARD_NUMBER     = "invalid card number"
+	ERR_INVALID_SPEED           = "invalid speed"
+	ERR_INVALID_SEATS_AMOUNT    = "invalid seats amount"
+	ERR_INVALID_PRICE_PER_DAY   = "price can not be less or equal to 0.txt"
+	ERR_INVALID_IMAGES_AMOUNT   = "the carsharing should have at least one image"
+	ERR_INVALID_RENT_START_TIME = "invalid rent start time"
 )
 
 type validator struct {
 	phone *regexp.Regexp
 	card  *regexp.Regexp
+}
+
+func (v *validator) ValidateGetRentStartingTomorrowReq(req *carsharing.GetRentStartingTomorrowReq) error {
+	if req.StartingOn.AsTime().Before(time.Now()) {
+		return status.Error(codes.InvalidArgument, ERR_INVALID_RENT_START_TIME)
+	}
+
+	return nil
 }
 
 func (v *validator) ValidateGetCarImageReq(req *carsharing.GetImageReq) error {
@@ -190,16 +202,16 @@ func (v *validator) validatePhoneNumber(phoneNumber string) error {
 	return nil
 }
 
-func (v *validator) validateCardCredentials(cardCredentials string) error {
-	valid := v.card.MatchString(cardCredentials)
-	if !valid {
-		return status.Error(codes.InvalidArgument, ERR_INVALID_CARD_NUMBER)
-	}
-
-	return nil
-}
-
-func (v *validator) validatePassportNumber(passportNumber string) error {
-	//TODO implement me
-	panic("implement me")
-}
+//func (v *validator) validateCardCredentials(cardCredentials string) error {
+//	valid := v.card.MatchString(cardCredentials)
+//	if !valid {
+//		return status.Error(codes.InvalidArgument, ERR_INVALID_CARD_NUMBER)
+//	}
+//
+//	return nil
+//}
+//
+//func (v *validator) validatePassportNumber(passportNumber string) error {
+//	//TODO implement me
+//	panic("implement me")
+//}

@@ -82,8 +82,8 @@ func TestService_CreateRent(t *testing.T) {
 	rentStart := time.Now()
 	rentEnd := rentStart.Add(time.Hour * 24 * 3)
 	rentUUID, err := s.CreateRent(context.Background(), models.CreateRentReq{
-		RentStart:      &rentStart,
-		RentEnd:        &rentEnd,
+		RentStart:      rentStart,
+		RentEnd:        rentEnd,
 		PaymentSource:  paymentSource,
 		CarUUID:        "uuid",
 		PassportNumber: "passport_number",

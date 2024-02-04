@@ -1,5 +1,5 @@
 version: 1.0.0
-name: cars_service
+name: carsharing_service
 
 services:
   cache:
@@ -11,17 +11,17 @@ services:
     volumes:
       - cars_cache:/etc/redis/data/
 
-  cars_storage:
+  cars_db:
 #    restart: on-failure
     image: postgres
-    container_name: cars_storage
+    container_name: cars_db
     ports:
       - "4005:5432"
     environment:
       - POSTGRES_PASSWORD=1787
       - POSTGRES_DB=cars
     volumes:
-      - cars_storage:/var/lib/postgresql/data
+      - cars_db:/var/lib/postgresql/data
 
   broker:
     image: "rabbitmq:3-management"
@@ -63,5 +63,5 @@ services:
 #      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
 
 volumes:
-  cars_storage:
+  cars_db:
   cars_cache:

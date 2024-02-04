@@ -171,19 +171,19 @@ func (mr *MockRepositoryMockRecorder) GetCarsByParams(ctx, params interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCarsByParams", reflect.TypeOf((*MockRepository)(nil).GetCarsByParams), ctx, params)
 }
 
-// SelectWhereRentTomorrow mocks base method.
-func (m *MockRepository) SelectWhereRentTomorrow(ctx context.Context, tomorrowDate time.Time) ([]models.RentStartData, error) {
+// GetRentsWhatStartsOnDate mocks base method.
+func (m *MockRepository) GetRentsWhatStartsOnDate(ctx context.Context, date time.Time) ([]models.RentStartData, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SelectWhereRentTomorrow", ctx, tomorrowDate)
+	ret := m.ctrl.Call(m, "GetRentsWhatStartsOnDate", ctx, date)
 	ret0, _ := ret[0].([]models.RentStartData)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// SelectWhereRentTomorrow indicates an expected call of SelectWhereRentTomorrow.
-func (mr *MockRepositoryMockRecorder) SelectWhereRentTomorrow(ctx, tomorrowDate interface{}) *gomock.Call {
+// GetRentsWhatStartsOnDate indicates an expected call of GetRentsWhatStartsOnDate.
+func (mr *MockRepositoryMockRecorder) GetRentsWhatStartsOnDate(ctx, date interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectWhereRentTomorrow", reflect.TypeOf((*MockRepository)(nil).SelectWhereRentTomorrow), ctx, tomorrowDate)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRentsWhatStartsOnDate", reflect.TypeOf((*MockRepository)(nil).GetRentsWhatStartsOnDate), ctx, date)
 }
 
 // UpdateCarPrice mocks base method.
@@ -417,19 +417,19 @@ func (mr *MockRentRepositoryMockRecorder) CreateRentTx(ctx, req interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRentTx", reflect.TypeOf((*MockRentRepository)(nil).CreateRentTx), ctx, req)
 }
 
-// SelectWhereRentTomorrow mocks base method.
-func (m *MockRentRepository) SelectWhereRentTomorrow(ctx context.Context, tomorrowDate time.Time) ([]models.RentStartData, error) {
+// GetRentsWhatStartsOnDate mocks base method.
+func (m *MockRentRepository) GetRentsWhatStartsOnDate(ctx context.Context, date time.Time) ([]models.RentStartData, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SelectWhereRentTomorrow", ctx, tomorrowDate)
+	ret := m.ctrl.Call(m, "GetRentsWhatStartsOnDate", ctx, date)
 	ret0, _ := ret[0].([]models.RentStartData)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// SelectWhereRentTomorrow indicates an expected call of SelectWhereRentTomorrow.
-func (mr *MockRentRepositoryMockRecorder) SelectWhereRentTomorrow(ctx, tomorrowDate interface{}) *gomock.Call {
+// GetRentsWhatStartsOnDate indicates an expected call of GetRentsWhatStartsOnDate.
+func (mr *MockRentRepositoryMockRecorder) GetRentsWhatStartsOnDate(ctx, date interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectWhereRentTomorrow", reflect.TypeOf((*MockRentRepository)(nil).SelectWhereRentTomorrow), ctx, tomorrowDate)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRentsWhatStartsOnDate", reflect.TypeOf((*MockRentRepository)(nil).GetRentsWhatStartsOnDate), ctx, date)
 }
 
 // MockTx is a mock of Tx interface.

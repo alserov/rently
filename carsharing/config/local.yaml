@@ -3,12 +3,10 @@ port: 3005
 
 
 broker:
-  addr: amqp://rabbitmq:1787@localhost:5672/
+  addr: amqp://rabbitmq:1787@localhost:5672
   topics:
     metrics:
-      decreaseActiveRentsAmount: ACTIVE_CAR_RENTS_DEC
-      increaseActiveRentsAmount: ACTIVE_CAR_RENTS_INC
-      increaseRentsCancel: RENTS_CANCELED
+      responseTime: CARSHARING_RESPONSE_TIME
       notifyBrandDemand: REQUESTED_BRANDS
 
 db:

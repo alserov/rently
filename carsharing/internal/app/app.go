@@ -38,7 +38,6 @@ func MustStart(cfg *config.Config) {
 	defer ch.Close()
 
 	serv := service.NewService(service.Params{
-		Metrics:       metrics.NewMetrics(ch, cfg.Broker.Topics.Metrics, l),
 		Repo:          postgres.NewRepo(postgres.MustConnect(cfg.DB.GetDsn())),
 		Notifications: notifications.NewNotifier(),
 		Payment:       payment.NewPayer("sk_test_51OU56CDOnc0MdcTNBwddO2cn8NrEebjfuAGjBjj9xSyKmiUO4ajJ1vZ0yBoOsAMq0HjHqCmis2niwoj2EZYCDLOA00lcCUlWxh"),
@@ -47,12 +46,13 @@ func MustStart(cfg *config.Config) {
 
 	gRPCServer := grpc.NewServer()
 
-	server.RegisterGRPCServer(gRPCServer, server.Server{
+	server.RegisterGRPCServer(gRPCServer, server.Params{
 		Service: serv,
 		Cache: redis.NewCache(redis.MustConnect(redis.Params{
 			Addr:     cfg.Cache.Addr,
 			Password: cfg.Cache.Password,
 		})),
+		Metrics: metrics.NewMetrics(ch, cfg.Broker.Topics.Metrics),
 	})
 
 	l.Info("app is running")
@@ -66,7 +66,7 @@ func run(s *grpc.Server, port int) {
 		panic("failed to listen: " + err.Error())
 	}
 
-	chStop := make(chan os.Signal)
+	chStop := make(chan os.Signal, 1)
 	signal.Notify(chStop, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {

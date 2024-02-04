@@ -28,7 +28,7 @@ type repository struct {
 	db *sqlx.DB
 }
 
-func (r *repository) SelectWhereRentTomorrow(ctx context.Context, tomorrowDate time.Time) ([]models.RentStartData, error) {
+func (r *repository) GetRentsWhatStartsOnDate(ctx context.Context, tomorrowDate time.Time) ([]models.RentStartData, error) {
 	query := `SELECT car_uuid, user_uuid, rent_start, rent_end FROM rents WHERE user_uuid != '' AND rent_start = $1`
 
 	rows, err := r.db.Queryx(query, tomorrowDate)

@@ -7,7 +7,6 @@ import (
 	"github.com/alserov/rently/carsharing/internal/db"
 	"github.com/alserov/rently/carsharing/internal/grpc_clients"
 	"github.com/alserov/rently/carsharing/internal/log"
-	"github.com/alserov/rently/carsharing/internal/metrics"
 	"github.com/alserov/rently/carsharing/internal/models"
 	"github.com/alserov/rently/carsharing/internal/notifications"
 	"github.com/alserov/rently/carsharing/internal/payment"
@@ -17,6 +16,7 @@ import (
 	"log/slog"
 	"net/http"
 	"sync"
+	"time"
 )
 
 type Service interface {
@@ -42,11 +42,11 @@ type RentActions interface {
 	CreateRent(ctx context.Context, req models.CreateRentReq) (res models.CreateRentRes, err error)
 	CancelRent(ctx context.Context, rentUUID string) error
 	CheckRent(ctx context.Context, rentUUID string) (res models.Rent, err error)
+	GetRentsWhatStartsOnDate(ctx context.Context, startingOn time.Time) ([]models.RentStartData, error)
 }
 
 type Params struct {
 	Payment       payment.Payer
-	Metrics       metrics.Metrics
 	ImageStorage  storage.ImageStorage
 	Notifications notifications.Notifier
 	UserClient    grpc_clients.UserClient
@@ -57,7 +57,6 @@ func NewService(p Params) Service {
 	return &service{
 		log:          log.GetLogger(),
 		repo:         p.Repo,
-		metrics:      p.Metrics,
 		imageStorage: p.ImageStorage,
 		payment:      p.Payment,
 		notification: p.Notifications,
@@ -71,13 +70,20 @@ type service struct {
 
 	payment payment.Payer
 
-	metrics metrics.Metrics
-
 	userClient grpc_clients.UserClient
 
 	imageStorage storage.ImageStorage
 
 	notification notifications.Notifier
+}
+
+func (s *service) GetRentsWhatStartsOnDate(ctx context.Context, startingOn time.Time) ([]models.RentStartData, error) {
+	rents, err := s.repo.GetRentsWhatStartsOnDate(ctx, startingOn)
+	if err != nil {
+		return nil, err
+	}
+
+	return rents, nil
 }
 
 func (s *service) GetImage(ctx context.Context, imageId string) ([]byte, error) {
@@ -193,8 +199,6 @@ func (s *service) GetCarsByParams(ctx context.Context, params models.CarParams) 
 		return nil, err
 	}
 
-	s.metrics.NotifyBrandDemand(params.Brand)
-
 	return cars, nil
 }
 
@@ -209,7 +213,11 @@ func (s *service) GetAvailableCars(ctx context.Context, period models.Period) ([
 
 func (s *service) CancelRent(ctx context.Context, rentUUID string) error {
 	rent, tx, err := s.repo.CancelRentTx(ctx, rentUUID)
-	defer tx.Rollback()
+	defer func() {
+		if err = tx.Rollback(); err != nil {
+			s.log.Err("failed to rollback tx", err, "op: cancel rent")
+		}
+	}()
 	if err != nil {
 		return err
 	}
@@ -218,8 +226,12 @@ func (s *service) CancelRent(ctx context.Context, rentUUID string) error {
 		return err
 	}
 
-	tx.Commit()
-	s.metrics.DecreaseActiveRentsAmount()
+	if err = tx.Commit(); err != nil {
+		return &models.Error{
+			Msg:    fmt.Sprintf("failed to commit tx: %v", err),
+			Status: http.StatusInternalServerError,
+		}
+	}
 
 	return nil
 }
@@ -247,7 +259,11 @@ func (s *service) CreateRent(ctx context.Context, req models.CreateRentReq) (mod
 	}
 
 	rentPrice, tx, err := s.repo.CreateRentTx(ctx, req)
-	defer tx.Rollback()
+	defer func() {
+		if err = tx.Rollback(); err != nil {
+			s.log.Err("failed to commit tx", err, "op: create rent")
+		}
+	}()
 	if err != nil {
 		return models.CreateRentRes{}, fmt.Errorf("repository error: %w", err)
 	}
@@ -273,7 +289,6 @@ func (s *service) CreateRent(ctx context.Context, req models.CreateRentReq) (mod
 			Status: http.StatusInternalServerError,
 		}
 	}
-	s.metrics.IncreaseActiveRentsAmount()
 
 	return models.CreateRentRes{
 		RentUUID: req.RentUUID,
