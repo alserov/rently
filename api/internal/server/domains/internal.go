@@ -152,7 +152,7 @@ func parseQueryParams(c *fiber.Ctx, target any) error {
 			case int:
 				value, err := strconv.Atoi(params[tag])
 				if err != nil {
-					panic("invalid type cast: " + err.Error())
+					return fmt.Errorf("invalid parameter type: %s", tag)
 				}
 				f.SetInt(int64(value))
 			case string:
@@ -160,7 +160,7 @@ func parseQueryParams(c *fiber.Ctx, target any) error {
 			case float32:
 				value, err := strconv.ParseFloat(params[tag], 32)
 				if err != nil {
-					panic("invalid type cast: " + err.Error())
+					return fmt.Errorf("invalid parameter type: %s", tag)
 				}
 				f.SetFloat(value)
 			}
@@ -188,6 +188,7 @@ func handleServiceError(w *fasthttp.Response, err error) {
 				Err: st.Message(),
 			}))
 		default:
+			log.GetLogger().Error("unknown service error", slog.String("error", err.Error()))
 			w.SetStatusCode(http.StatusInternalServerError)
 		}
 	}

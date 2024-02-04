@@ -34,8 +34,8 @@ func DialServices(s Services) *Clients {
 	var clients Clients
 
 	clients.Conns = append(clients.Conns, []*grpc.ClientConn{dial(s.CarAddr), dial(s.UserAddr)}...)
-	clients.CarClient = carsharing.NewCarsClient(clients.Conns[len(clients.Conns)-1])
-	clients.UserClient = user.NewUserClient(clients.Conns[len(clients.Conns)-1])
+	clients.CarClient = carsharing.NewCarsClient(clients.Conns[0])
+	clients.UserClient = user.NewUserClient(clients.Conns[1])
 
 	return &clients
 }

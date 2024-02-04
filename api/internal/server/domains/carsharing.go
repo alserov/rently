@@ -24,16 +24,22 @@ const (
 	breakerTimeout   = time.Second * 5
 )
 
-func NewCarsharing(p Params[carsh.CarsClient]) Carsharing {
+func NewCarsharing(p Params[CarsharingClients]) Carsharing {
 	return &carsharing{
 		log:              log.GetLogger(),
-		carsharingClient: p.Client,
+		carsharingClient: p.Client.Carsharing,
+		userClient:       p.Client.User,
 		readTimeout:      p.ReadTimeout,
 		writeTimeout:     p.WriteTimeout,
 		valid:            validator.New(),
 		breaker:          grpcbreaker.NewBreaker(maxServiceErrors, breakerTimeout),
 		convert:          converter.NewConverter(),
 	}
+}
+
+type CarsharingClients struct {
+	Carsharing carsh.CarsClient
+	User       usr.UserClient
 }
 
 type Carsharing interface {

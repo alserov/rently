@@ -3,7 +3,6 @@ package server
 import (
 	"github.com/alserov/rently/api/internal/server/domains"
 	"github.com/alserov/rently/api/internal/utils/clients"
-	"github.com/alserov/rently/proto/gen/carsharing"
 	"github.com/alserov/rently/proto/gen/user"
 	"time"
 )
@@ -23,11 +22,18 @@ type Params struct {
 
 func NewServer(p Params) *Server {
 	return &Server{
-		Carsharing: domains.NewCarsharing(domains.Params[carsharing.CarsClient]{
-			Client:       p.Clients.CarClient,
+		Carsharing: domains.NewCarsharing(domains.Params[domains.CarsharingClients]{
+			Client: domains.CarsharingClients{
+				Carsharing: p.Clients.CarClient,
+				User:       p.Clients.UserClient,
+			},
 			ReadTimeout:  p.ReadTimeout,
 			WriteTimeout: p.WriteTimeout,
 		}),
-		User: domains.NewUser(domains.Params[user.UserClient]{}),
+		User: domains.NewUser(domains.Params[user.UserClient]{
+			Client:       p.Clients.UserClient,
+			ReadTimeout:  p.ReadTimeout,
+			WriteTimeout: p.WriteTimeout,
+		}),
 	}
 }

@@ -18,7 +18,13 @@ type User interface {
 }
 
 func NewUser(p Params[usr.UserClient]) User {
-	return &user{}
+	return &user{
+		userClient:   p.Client,
+		valid:        validator.New(),
+		convert:      converter.NewConverter(),
+		readTimeout:  p.ReadTimeout,
+		writeTimeout: p.WriteTimeout,
+	}
 }
 
 type user struct {
