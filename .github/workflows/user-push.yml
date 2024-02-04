@@ -1,4 +1,4 @@
-name: carsharing
+name: user
 on: push
 
 jobs:
@@ -6,7 +6,7 @@ jobs:
     name: Code Linter
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v3
 
       - uses: actions/setup-go@v4
@@ -18,4 +18,4 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: v1.54
-          working-directory: carsharing
+          working-directory: user
