@@ -73,7 +73,7 @@ message CreateRentReq {
   string PhoneNumber = 2;
   string PassportNumber = 3;
   string PaymentSource = 4;
-  string UuidIfAuthorized = 5;
+  string Token = 5;
 
   google.protobuf.Timestamp RentStart = 6;
   google.protobuf.Timestamp RentEnd = 7;
