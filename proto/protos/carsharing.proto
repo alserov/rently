@@ -11,7 +11,7 @@ service Cars {
   rpc CancelRent(CancelRentReq) returns (google.protobuf.Empty);
   rpc CheckRent(CheckRentReq) returns (CheckRentRes);
 
-  rpc GetRentStartingOnDate(GetRentStartingTomorrowReq) returns(GetRentStartingTomorrowRes);
+  rpc GetRentStartingOnDate(GetRentStartingOnDateReq) returns(GetRentStartingOnDateRes);
   rpc GetAvailableCars(GetAvailableCarsReq) returns (GetCarsRes);
   rpc GetCarsByParams(GetCarsByParamsReq) returns (GetCarsRes);
   rpc GetCarByUUID(GetCarByUUIDReq) returns (Car);
@@ -22,11 +22,11 @@ service Cars {
   rpc UpdateCarPrice(UpdateCarPriceReq) returns (google.protobuf.Empty);
 }
 
-message  GetRentStartingTomorrowReq {
+message  GetRentStartingOnDateReq {
   google.protobuf.Timestamp StartingOn = 1;
 }
 
-message GetRentStartingTomorrowRes {
+message GetRentStartingOnDateRes {
   repeated CheckRentRes RentsInfo = 1;
 }
 

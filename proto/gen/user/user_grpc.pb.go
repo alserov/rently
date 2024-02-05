@@ -26,9 +26,9 @@ type UserClient interface {
 	Register(ctx context.Context, in *RegisterReq, opts ...grpc.CallOption) (*RegisterRes, error)
 	Login(ctx context.Context, in *LoginReq, opts ...grpc.CallOption) (*LoginRes, error)
 	CheckIfAuthorized(ctx context.Context, in *CheckIfAuthorizedReq, opts ...grpc.CallOption) (*CheckIfAuthorizedRes, error)
-	// rpc ResetPassword() returns(google.protobuf.Empty);
+	ResetPassword(ctx context.Context, in *ResetPasswordReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	GetInfo(ctx context.Context, in *GetInfoReq, opts ...grpc.CallOption) (*UserInfoRes, error)
-	GetInfoForRent(ctx context.Context, in *GetInfoReq, opts ...grpc.CallOption) (*GetInfoForRentRes, error)
+	GetInfoForRent(ctx context.Context, in *GetRentInfoReq, opts ...grpc.CallOption) (*GetInfoForRentRes, error)
 	SwitchStatusNotifications(ctx context.Context, in *SwitchNotificationsStatusReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
@@ -67,6 +67,15 @@ func (c *userClient) CheckIfAuthorized(ctx context.Context, in *CheckIfAuthorize
 	return out, nil
 }
 
+func (c *userClient) ResetPassword(ctx context.Context, in *ResetPasswordReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/User/ResetPassword", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userClient) GetInfo(ctx context.Context, in *GetInfoReq, opts ...grpc.CallOption) (*UserInfoRes, error) {
 	out := new(UserInfoRes)
 	err := c.cc.Invoke(ctx, "/User/GetInfo", in, out, opts...)
@@ -76,7 +85,7 @@ func (c *userClient) GetInfo(ctx context.Context, in *GetInfoReq, opts ...grpc.C
 	return out, nil
 }
 
-func (c *userClient) GetInfoForRent(ctx context.Context, in *GetInfoReq, opts ...grpc.CallOption) (*GetInfoForRentRes, error) {
+func (c *userClient) GetInfoForRent(ctx context.Context, in *GetRentInfoReq, opts ...grpc.CallOption) (*GetInfoForRentRes, error) {
 	out := new(GetInfoForRentRes)
 	err := c.cc.Invoke(ctx, "/User/GetInfoForRent", in, out, opts...)
 	if err != nil {
@@ -101,9 +110,9 @@ type UserServer interface {
 	Register(context.Context, *RegisterReq) (*RegisterRes, error)
 	Login(context.Context, *LoginReq) (*LoginRes, error)
 	CheckIfAuthorized(context.Context, *CheckIfAuthorizedReq) (*CheckIfAuthorizedRes, error)
-	// rpc ResetPassword() returns(google.protobuf.Empty);
+	ResetPassword(context.Context, *ResetPasswordReq) (*emptypb.Empty, error)
 	GetInfo(context.Context, *GetInfoReq) (*UserInfoRes, error)
-	GetInfoForRent(context.Context, *GetInfoReq) (*GetInfoForRentRes, error)
+	GetInfoForRent(context.Context, *GetRentInfoReq) (*GetInfoForRentRes, error)
 	SwitchStatusNotifications(context.Context, *SwitchNotificationsStatusReq) (*emptypb.Empty, error)
 	mustEmbedUnimplementedUserServer()
 }
@@ -121,10 +130,13 @@ func (UnimplementedUserServer) Login(context.Context, *LoginReq) (*LoginRes, err
 func (UnimplementedUserServer) CheckIfAuthorized(context.Context, *CheckIfAuthorizedReq) (*CheckIfAuthorizedRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckIfAuthorized not implemented")
 }
+func (UnimplementedUserServer) ResetPassword(context.Context, *ResetPasswordReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ResetPassword not implemented")
+}
 func (UnimplementedUserServer) GetInfo(context.Context, *GetInfoReq) (*UserInfoRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetInfo not implemented")
 }
-func (UnimplementedUserServer) GetInfoForRent(context.Context, *GetInfoReq) (*GetInfoForRentRes, error) {
+func (UnimplementedUserServer) GetInfoForRent(context.Context, *GetRentInfoReq) (*GetInfoForRentRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetInfoForRent not implemented")
 }
 func (UnimplementedUserServer) SwitchStatusNotifications(context.Context, *SwitchNotificationsStatusReq) (*emptypb.Empty, error) {
@@ -197,6 +209,24 @@ func _User_CheckIfAuthorized_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _User_ResetPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResetPasswordReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).ResetPassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/User/ResetPassword",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).ResetPassword(ctx, req.(*ResetPasswordReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _User_GetInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetInfoReq)
 	if err := dec(in); err != nil {
@@ -216,7 +246,7 @@ func _User_GetInfo_Handler(srv interface{}, ctx context.Context, dec func(interf
 }
 
 func _User_GetInfoForRent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetInfoReq)
+	in := new(GetRentInfoReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -228,7 +258,7 @@ func _User_GetInfoForRent_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: "/User/GetInfoForRent",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServer).GetInfoForRent(ctx, req.(*GetInfoReq))
+		return srv.(UserServer).GetInfoForRent(ctx, req.(*GetRentInfoReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -269,6 +299,10 @@ var User_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckIfAuthorized",
 			Handler:    _User_CheckIfAuthorized_Handler,
+		},
+		{
+			MethodName: "ResetPassword",
+			Handler:    _User_ResetPassword_Handler,
 		},
 		{
 			MethodName: "GetInfo",

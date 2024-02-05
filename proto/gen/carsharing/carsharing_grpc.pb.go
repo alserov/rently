@@ -26,7 +26,7 @@ type CarsClient interface {
 	CreateRent(ctx context.Context, in *CreateRentReq, opts ...grpc.CallOption) (*CreateRentRes, error)
 	CancelRent(ctx context.Context, in *CancelRentReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	CheckRent(ctx context.Context, in *CheckRentReq, opts ...grpc.CallOption) (*CheckRentRes, error)
-	GetRentStartingOnDate(ctx context.Context, in *GetRentStartingTomorrowReq, opts ...grpc.CallOption) (*GetRentStartingTomorrowRes, error)
+	GetRentStartingOnDate(ctx context.Context, in *GetRentStartingOnDateReq, opts ...grpc.CallOption) (*GetRentStartingOnDateRes, error)
 	GetAvailableCars(ctx context.Context, in *GetAvailableCarsReq, opts ...grpc.CallOption) (*GetCarsRes, error)
 	GetCarsByParams(ctx context.Context, in *GetCarsByParamsReq, opts ...grpc.CallOption) (*GetCarsRes, error)
 	GetCarByUUID(ctx context.Context, in *GetCarByUUIDReq, opts ...grpc.CallOption) (*Car, error)
@@ -71,8 +71,8 @@ func (c *carsClient) CheckRent(ctx context.Context, in *CheckRentReq, opts ...gr
 	return out, nil
 }
 
-func (c *carsClient) GetRentStartingOnDate(ctx context.Context, in *GetRentStartingTomorrowReq, opts ...grpc.CallOption) (*GetRentStartingTomorrowRes, error) {
-	out := new(GetRentStartingTomorrowRes)
+func (c *carsClient) GetRentStartingOnDate(ctx context.Context, in *GetRentStartingOnDateReq, opts ...grpc.CallOption) (*GetRentStartingOnDateRes, error) {
+	out := new(GetRentStartingOnDateRes)
 	err := c.cc.Invoke(ctx, "/carsharing.Cars/GetRentStartingOnDate", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -150,7 +150,7 @@ type CarsServer interface {
 	CreateRent(context.Context, *CreateRentReq) (*CreateRentRes, error)
 	CancelRent(context.Context, *CancelRentReq) (*emptypb.Empty, error)
 	CheckRent(context.Context, *CheckRentReq) (*CheckRentRes, error)
-	GetRentStartingOnDate(context.Context, *GetRentStartingTomorrowReq) (*GetRentStartingTomorrowRes, error)
+	GetRentStartingOnDate(context.Context, *GetRentStartingOnDateReq) (*GetRentStartingOnDateRes, error)
 	GetAvailableCars(context.Context, *GetAvailableCarsReq) (*GetCarsRes, error)
 	GetCarsByParams(context.Context, *GetCarsByParamsReq) (*GetCarsRes, error)
 	GetCarByUUID(context.Context, *GetCarByUUIDReq) (*Car, error)
@@ -174,7 +174,7 @@ func (UnimplementedCarsServer) CancelRent(context.Context, *CancelRentReq) (*emp
 func (UnimplementedCarsServer) CheckRent(context.Context, *CheckRentReq) (*CheckRentRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckRent not implemented")
 }
-func (UnimplementedCarsServer) GetRentStartingOnDate(context.Context, *GetRentStartingTomorrowReq) (*GetRentStartingTomorrowRes, error) {
+func (UnimplementedCarsServer) GetRentStartingOnDate(context.Context, *GetRentStartingOnDateReq) (*GetRentStartingOnDateRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRentStartingOnDate not implemented")
 }
 func (UnimplementedCarsServer) GetAvailableCars(context.Context, *GetAvailableCarsReq) (*GetCarsRes, error) {
@@ -266,7 +266,7 @@ func _Cars_CheckRent_Handler(srv interface{}, ctx context.Context, dec func(inte
 }
 
 func _Cars_GetRentStartingOnDate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetRentStartingTomorrowReq)
+	in := new(GetRentStartingOnDateReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -278,7 +278,7 @@ func _Cars_GetRentStartingOnDate_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: "/carsharing.Cars/GetRentStartingOnDate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CarsServer).GetRentStartingOnDate(ctx, req.(*GetRentStartingTomorrowReq))
+		return srv.(CarsServer).GetRentStartingOnDate(ctx, req.(*GetRentStartingOnDateReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }

@@ -8,19 +8,19 @@ service User {
   rpc Register(RegisterReq) returns(RegisterRes);
   rpc Login(LoginReq) returns(LoginRes);
   rpc CheckIfAuthorized(CheckIfAuthorizedReq) returns(CheckIfAuthorizedRes);
-  //  rpc ResetPassword() returns(google.protobuf.Empty);
+  rpc ResetPassword(ResetPasswordReq) returns(google.protobuf.Empty);
   rpc GetInfo(GetInfoReq) returns(UserInfoRes);
-  rpc GetInfoForRent(GetInfoReq) returns(GetInfoForRentRes);
+  rpc GetInfoForRent(GetRentInfoReq) returns(GetInfoForRentRes);
   rpc SwitchStatusNotifications(SwitchNotificationsStatusReq) returns(google.protobuf.Empty);
 }
 
 message CheckIfAuthorizedReq {
-  string token = 1;
+  string Token = 1;
 }
 
 message CheckIfAuthorizedRes {
-  bool isAuthorized = 1;
-  string role = 2;
+  bool IsAuthorized = 1;
+  string Role = 2;
 }
 
 message RegisterReq {
@@ -37,6 +37,11 @@ message RegisterRes {
   string Token = 2;
 }
 
+message ResetPasswordReq {
+  string OldPassword = 1;
+  string NewPassword = 2;
+}
+
 message LoginReq {
   string Email = 1;
   string Password = 2;
@@ -48,6 +53,10 @@ message LoginRes {
 
 message GetInfoReq {
   string UUID = 1;
+}
+
+message GetRentInfoReq {
+  string Token = 1;
 }
 
 message UserInfoRes {
