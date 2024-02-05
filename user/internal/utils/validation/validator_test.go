@@ -7,6 +7,12 @@ import (
 	"testing"
 )
 
+//func TestTimer(t *testing.T) {
+//	n := time.Now().Add(time.Hour * 24 * 3)
+//	fmt.Println(n.Unix())
+//	fmt.Println(n.Add(time.Hour * 24 * 7).Unix())
+//}
+
 func TestValidator_ValidateRegisterReq(t *testing.T) {
 	tests := []struct {
 		name     string

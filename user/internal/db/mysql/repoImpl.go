@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/alserov/rently/user/internal/db"
 	"github.com/alserov/rently/user/internal/models"
-	"github.com/alserov/rently/user/internal/service"
 	"github.com/jmoiron/sqlx"
 	"net/http"
 )
@@ -23,13 +22,7 @@ type repository struct {
 }
 
 func (r repository) CheckIfAuthorized(ctx context.Context, uuid string, role string) error {
-	var query string
-	switch role {
-	case service.ROLE_USER:
-		query = `SELECT count(*) FROM users WHERE uuid = ?`
-	case service.ROLE_ADMIN:
-		query = `SELECT count(*) FROM admins WHERE uuid = ?`
-	}
+	query := `SELECT count(*) FROM users WHERE uuid = ?`
 
 	err := r.db.QueryRowx(query, uuid).Err()
 	if errors.Is(err, sql.ErrNoRows) {
@@ -49,7 +42,7 @@ func (r repository) CheckIfAuthorized(ctx context.Context, uuid string, role str
 }
 
 func (r repository) Login(_ context.Context, email string) (db.LoginInfo, error) {
-	query := `SELECT uuid,email,password FROM users WHERE email = ? LIMIT 1`
+	query := `SELECT uuid,email,password,role FROM users WHERE email = ?  LIMIT 1`
 
 	var info db.LoginInfo
 	err := r.db.QueryRowx(query, email).StructScan(&info)
@@ -152,11 +145,13 @@ func (r repository) GetUserByUUID(_ context.Context, uuid string) (db.EmailNotif
 	return info, nil
 }
 
-func (r repository) Register(_ context.Context, req models.RegisterReq) error {
-	query := `INSERT INTO users (uuid,username,password,email,passport_number,payment_source,phone_number)
-				VALUES (?,?,?,?,?,?,?)`
+const ROLE_USER = "user"
 
-	err := r.db.QueryRowx(query, req.UUID, req.Username, req.Password, req.Email, req.PassportNumber, req.PaymentSource, req.PhoneNumber).Err()
+func (r repository) Register(_ context.Context, req models.RegisterReq) error {
+	query := `INSERT INTO users (uuid,username,password,email,role ,passport_number,payment_source,phone_number)
+				VALUES (?,?,?,?,?,?,?, ?)`
+
+	err := r.db.QueryRowx(query, req.UUID, req.Username, req.Password, req.Email, ROLE_USER, req.PassportNumber, req.PaymentSource, req.PhoneNumber).Err()
 	if err != nil {
 		return &models.Error{
 			Msg:    fmt.Sprintf("failed to query raw register: %v", err),

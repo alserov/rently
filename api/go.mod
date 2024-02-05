@@ -4,7 +4,7 @@ go 1.21.0
 
 require (
 	github.com/alserov/circuit_breaker v0.0.0-20240120121540-5f27b70926d3
-	github.com/alserov/rently/proto v0.0.0-20240129180428-f2cc68b6bde9
+	github.com/alserov/rently/proto v0.0.0-20240205140542-e09dc78dec37
 	github.com/go-playground/validator/v10 v10.17.0
 	github.com/gofiber/fiber/v2 v2.52.0
 	github.com/valyala/fasthttp v1.51.0

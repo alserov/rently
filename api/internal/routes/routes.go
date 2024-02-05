@@ -7,16 +7,17 @@ import (
 )
 
 const (
-	RENT = "/rent"
-	INFO = "/info"
-	AUTH = "/auth"
+	RENT  = "/rent"
+	INFO  = "/info"
+	AUTH  = "/auth"
+	ADMIN = "/admin"
 )
 
 func Setup(c *fiber.App, s *server.Server) {
-	rent := c.Group(RENT)
-	rent.Post("carsharing/", middleware.CheckIfAuthorized, s.Carsharing.CreateCar)
-	rent.Delete("carsharing/:car_uuid", middleware.CheckIfAuthorized, s.Carsharing.DeleteCar)
-	rent.Patch("carsharing/", middleware.CheckIfAuthorized, s.Carsharing.UpdateCarPrice)
+	admin := c.Group(ADMIN)
+	admin.Post("carsharing/", middleware.CheckIfAuthorized, s.Carsharing.CreateCar)
+	admin.Delete("carsharing/:car_uuid", middleware.CheckIfAuthorized, s.Carsharing.DeleteCar)
+	admin.Patch("carsharing/", middleware.CheckIfAuthorized, s.Carsharing.UpdateCarPrice)
 
 	info := c.Group(INFO)
 	info.Get("carsharing/car/image/:bucket/:id", s.Carsharing.GetImage)
@@ -26,4 +27,7 @@ func Setup(c *fiber.App, s *server.Server) {
 	auth := c.Group(AUTH)
 	auth.Post("register/", s.User.Register)
 	auth.Get("login/", s.User.Login)
+
+	rent := c.Group(RENT)
+	rent.Post("/carsharing/new", s.Carsharing.CreateRent)
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
+	"golang.org/x/crypto/bcrypt"
 	"os"
 	"time"
 )
@@ -38,12 +39,18 @@ func initAdmin(conn *sqlx.DB) {
 
 	adminPassword := os.Getenv("ADMIN_PASSWORD")
 	panicIfEmpty(adminPassword, "admin password")
-	adminUsername := os.Getenv("ADMIN_USERNAME")
-	panicIfEmpty(adminUsername, "admin username")
+	adminEmail := os.Getenv("ADMIN_EMAIL")
+	panicIfEmpty(adminEmail, "admin email")
 
-	query := `INSERT INTO admins (uuid, username, password) VALUES(?,?,?)`
+	query := `INSERT INTO users (uuid,username,password,email,role ,passport_number,payment_source,phone_number)
+				VALUES (?,?,?,?,?,?,?,?)`
 
-	if err := conn.QueryRowx(query, uuid.New().String(), adminUsername, adminPassword).Err(); err != nil {
+	b, err := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
+	if err != nil {
+		panic("failed to hash password")
+	}
+
+	if err = conn.QueryRowx(query, uuid.New().String(), "ADMIN", string(b), adminEmail, "admin", "0", "0", "0").Err(); err != nil {
 		panic("failed to init admin: " + err.Error())
 	}
 }

@@ -5,7 +5,7 @@ go 1.21.0
 require (
 	github.com/IBM/sarama v1.42.1
 	github.com/Shopify/go-storage v1.3.0
-	github.com/alserov/rently/proto v0.0.0-20240130173252-f312494928ad
+	github.com/alserov/rently/proto v0.0.0-20240205140542-e09dc78dec37
 	github.com/golang-migrate/migrate/v4 v4.17.0
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.5.0

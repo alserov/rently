@@ -28,6 +28,20 @@ type repository struct {
 	db *sqlx.DB
 }
 
+func (r *repository) CheckIfCarAvailableInPeriod(_ context.Context, carUUID string, from, to time.Time) (bool, error) {
+	query := `SELECT count(*) FROM rents WHERE car_uuid = $1 AND $2 BETWEEN rent_start AND rent_end OR $3 BETWEEN rent_start AND rent_end`
+
+	var found int
+	if err := r.db.QueryRowx(query, carUUID, from, to).Scan(&found); err != nil {
+		return false, &models.Error{
+			Msg:    fmt.Sprintf("failed to check if car is available: %v", err),
+			Status: http.StatusInternalServerError,
+		}
+	}
+
+	return found == 0, nil
+}
+
 func (r *repository) GetRentsWhatStartsOnDate(ctx context.Context, tomorrowDate time.Time) ([]models.RentStartData, error) {
 	query := `SELECT car_uuid, user_uuid, rent_start, rent_end FROM rents WHERE user_uuid != '' AND rent_start = $1`
 
@@ -55,8 +69,16 @@ func (r *repository) GetRentsWhatStartsOnDate(ctx context.Context, tomorrowDate 
 }
 
 func (r *repository) CreateCharge(ctx context.Context, req models.Charge) error {
-	//TODO implement me
-	panic("implement me")
+	query := `INSERT INTO charges (rent_uuid,charge_uuid,charge_amount) VALUES ($1,$2,$3)`
+
+	if err := r.db.QueryRowx(query, req.RentUUID, req.ChargeUUID, req.ChargeAmount).Err(); err != nil {
+		return &models.Error{
+			Msg:    fmt.Sprintf("failed to insert charge: %v", err),
+			Status: http.StatusInternalServerError,
+		}
+	}
+
+	return nil
 }
 
 func (r *repository) CancelRentTx(ctx context.Context, rentUUID string) (models.CancelRentInfo, db.Tx, error) {
@@ -147,35 +169,27 @@ func (r *repository) UpdateCarPrice(ctx context.Context, req models.UpdateCarPri
 }
 
 func (r *repository) CreateRentTx(_ context.Context, req models.CreateRentReq) (float32, db.Tx, error) {
-	query := `INSERT INTO rents(rent_uuid,rent_price, car_uuid, phone_number,passport_number,charge_id, rent_start,rent_end)
-				VALUES ($1,(SELECT car_price FROM cars WHERE uuid = $2) * ($7 - $6),$2,$3,$4,$5,$6, $7) RETURNING car_price`
+	query := `INSERT INTO rents(rent_uuid,car_uuid, phone_number,passport_number,rent_start,rent_end)
+				VALUES ($1,$2,$3,$4,$5,$6) RETURNING (SELECT price_per_day FROM cars WHERE uuid = $2 LIMIT 1)`
 
 	tx, err := r.db.Beginx()
 	if err != nil {
-		return 0, nil, &models.Error{
+		return 0, tx, &models.Error{
 			Msg:    fmt.Sprintf("failed to start tx: %v", err),
 			Status: http.StatusInternalServerError,
 		}
 	}
 
-	row, err := tx.
-		Queryx(query, req.RentUUID, req.CarUUID, req.PhoneNumber, req.PassportNumber, req.ChargeID, req.RentStart, req.RentEnd)
+	var carPricePerDay float32
+	err = tx.QueryRowx(query, req.RentUUID, req.CarUUID, req.PhoneNumber, req.PassportNumber, req.RentStart, req.RentEnd).Scan(&carPricePerDay)
 	if err != nil {
-		return 0, nil, &models.Error{
+		return 0, tx, &models.Error{
 			Status: http.StatusInternalServerError,
 			Msg:    fmt.Sprintf("failed to create rent: %v", err),
 		}
 	}
 
-	var rentPrice float32
-	if err = row.Scan(&rentPrice); err != nil {
-		return 0, tx, &models.Error{
-			Msg:    fmt.Sprintf("failed to scan into rentPrice: %v", err),
-			Status: http.StatusInternalServerError,
-		}
-	}
-
-	return rentPrice, tx, nil
+	return carPricePerDay, tx, nil
 }
 
 func (r *repository) GetCarsByParams(ctx context.Context, params models.CarParams) ([]models.CarMainInfo, error) {

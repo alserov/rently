@@ -19,6 +19,7 @@ type LoginInfo struct {
 	UUID     string
 	Email    string
 	Password string
+	Role     string
 }
 
 type EmailNotificationsInfo struct {

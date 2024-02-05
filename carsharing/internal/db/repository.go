@@ -25,6 +25,7 @@ type CarRepository interface {
 }
 
 type RentRepository interface {
+	CheckIfCarAvailableInPeriod(ctx context.Context, carUUID string, from, to time.Time) (bool, error)
 	CreateRentTx(ctx context.Context, req models.CreateRentReq) (price float32, tx Tx, err error)
 	CancelRentTx(ctx context.Context, rentUUID string) (rentInfo models.CancelRentInfo, tx Tx, err error)
 	CheckRent(ctx context.Context, rentUUID string) (rent models.Rent, err error)

@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"github.com/alserov/rently/carsharing/internal/cache/redis"
+	"github.com/alserov/rently/carsharing/internal/clients"
 	"github.com/alserov/rently/carsharing/internal/config"
 	"github.com/alserov/rently/carsharing/internal/db/postgres"
 	"github.com/alserov/rently/carsharing/internal/log"
@@ -37,11 +38,21 @@ func MustStart(cfg *config.Config) {
 	defer conn.Close()
 	defer ch.Close()
 
+	cls := clients.DialServices(clients.Services{
+		UserAddr: cfg.Services.User,
+	})
+	defer func() {
+		if err := cls.CloseConns(); err != nil {
+			l.Error("failed to close clients connection(s)", slog.String("error", err.Error()))
+		}
+	}()
+
 	serv := service.NewService(service.Params{
 		Repo:          postgres.NewRepo(postgres.MustConnect(cfg.DB.GetDsn())),
 		Notifications: notifications.NewNotifier(),
 		Payment:       payment.NewPayer("sk_test_51OU56CDOnc0MdcTNBwddO2cn8NrEebjfuAGjBjj9xSyKmiUO4ajJ1vZ0yBoOsAMq0HjHqCmis2niwoj2EZYCDLOA00lcCUlWxh"),
 		ImageStorage:  storage.NewImageStorage(),
+		UserClient:    clients.NewUserClient(cls.UserClient),
 	})
 
 	gRPCServer := grpc.NewServer()

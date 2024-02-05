@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/alserov/rently/api/internal/log"
 	"github.com/gofiber/fiber/v2"
 	"log/slog"
@@ -20,12 +21,8 @@ func CheckIfAuthorized(c *fiber.Ctx) error {
 	l := log.GetLogger()
 
 	if token == "" {
-		c.Cookie(&fiber.Cookie{
-			Name:  AUTH_TOKEN,
-			Value: "token",
-		})
 		c.Status(http.StatusMethodNotAllowed)
-		b, err := json.Marshal(ERR_NOT_AUTHORIZED)
+		b, err := json.Marshal(map[string]string{"error": ERR_NOT_AUTHORIZED})
 		if err != nil {
 			l.Error("middleware: failed to marshal error message", slog.String("error", err.Error()))
 			return nil
@@ -37,7 +34,8 @@ func CheckIfAuthorized(c *fiber.Ctx) error {
 		return nil
 	}
 
-	c.Context().SetUserValue(AUTH_TOKEN, "t")
+	c.Context().SetUserValue(AUTH_TOKEN, token)
+	fmt.Println(c.UserContext().Value(AUTH_TOKEN))
 
 	if err := c.Next(); err != nil {
 		l.Error("failed to execute next method", slog.String("error", err.Error()))

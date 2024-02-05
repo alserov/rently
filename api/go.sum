@@ -8,6 +8,10 @@ github.com/alserov/rently/proto v0.0.0-20240125161327-1b52b21d5062 h1:EaUPDyV2Xo
 github.com/alserov/rently/proto v0.0.0-20240125161327-1b52b21d5062/go.mod h1:PH/CdDFywo/Fevnt5HfrfP81nNUttnqTAw2oimxUaDY=
 github.com/alserov/rently/proto v0.0.0-20240129180428-f2cc68b6bde9 h1:yoZV6EN1FmslKwcx3O4WM0BxnwF1ne2ulEbcUXpkc5o=
 github.com/alserov/rently/proto v0.0.0-20240129180428-f2cc68b6bde9/go.mod h1:PH/CdDFywo/Fevnt5HfrfP81nNUttnqTAw2oimxUaDY=
+github.com/alserov/rently/proto v0.0.0-20240204181014-bd74a00f3eeb h1:lIPjFNJ+gVL4nu6xR/Dp0GFEXxWYbOT3Y6S935Y/RcU=
+github.com/alserov/rently/proto v0.0.0-20240204181014-bd74a00f3eeb/go.mod h1:PH/CdDFywo/Fevnt5HfrfP81nNUttnqTAw2oimxUaDY=
+github.com/alserov/rently/proto v0.0.0-20240205140542-e09dc78dec37 h1:iMw2PpS8D4wLfOTmUKuDqiI3PzMjULcKVo33fPwaHKY=
+github.com/alserov/rently/proto v0.0.0-20240205140542-e09dc78dec37/go.mod h1:PH/CdDFywo/Fevnt5HfrfP81nNUttnqTAw2oimxUaDY=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
 github.com/andybalholm/brotli v1.0.5/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

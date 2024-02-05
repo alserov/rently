@@ -10,6 +10,15 @@ func (e Error) Error() string {
 	return e.Err
 }
 
+type CreateRentReq struct {
+	CarUUID        string `json:"carUUID" validate:"required"`
+	PhoneNumber    string `json:"phoneNumber"`
+	PassportNumber string `json:"passportNumber"`
+	PaymentSource  string `json:"paymentSource" validate:"required"`
+	RentStart      int64  `json:"rentStart"`
+	RentEnd        int64  `json:"rentEnd"`
+}
+
 type CreateCarReq struct {
 	Brand       string   `json:"brand" validate:"required"`
 	Type        string   `json:"type" validate:"required"`

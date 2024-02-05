@@ -53,6 +53,21 @@ func (mr *MockRepositoryMockRecorder) CancelRentTx(ctx, rentUUID interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelRentTx", reflect.TypeOf((*MockRepository)(nil).CancelRentTx), ctx, rentUUID)
 }
 
+// CheckIfCarAvailableInPeriod mocks base method.
+func (m *MockRepository) CheckIfCarAvailableInPeriod(ctx context.Context, carUUID string, from, to time.Time) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckIfCarAvailableInPeriod", ctx, carUUID, from, to)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CheckIfCarAvailableInPeriod indicates an expected call of CheckIfCarAvailableInPeriod.
+func (mr *MockRepositoryMockRecorder) CheckIfCarAvailableInPeriod(ctx, carUUID, from, to interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckIfCarAvailableInPeriod", reflect.TypeOf((*MockRepository)(nil).CheckIfCarAvailableInPeriod), ctx, carUUID, from, to)
+}
+
 // CheckRent mocks base method.
 func (m *MockRepository) CheckRent(ctx context.Context, rentUUID string) (models.Rent, error) {
 	m.ctrl.T.Helper()
@@ -370,6 +385,21 @@ func (m *MockRentRepository) CancelRentTx(ctx context.Context, rentUUID string) 
 func (mr *MockRentRepositoryMockRecorder) CancelRentTx(ctx, rentUUID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelRentTx", reflect.TypeOf((*MockRentRepository)(nil).CancelRentTx), ctx, rentUUID)
+}
+
+// CheckIfCarAvailableInPeriod mocks base method.
+func (m *MockRentRepository) CheckIfCarAvailableInPeriod(ctx context.Context, carUUID string, from, to time.Time) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckIfCarAvailableInPeriod", ctx, carUUID, from, to)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CheckIfCarAvailableInPeriod indicates an expected call of CheckIfCarAvailableInPeriod.
+func (mr *MockRentRepositoryMockRecorder) CheckIfCarAvailableInPeriod(ctx, carUUID, from, to interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckIfCarAvailableInPeriod", reflect.TypeOf((*MockRentRepository)(nil).CheckIfCarAvailableInPeriod), ctx, carUUID, from, to)
 }
 
 // CheckRent mocks base method.

@@ -4,6 +4,8 @@ import (
 	"github.com/alserov/rently/api/internal/models"
 	"github.com/alserov/rently/proto/gen/carsharing"
 	"github.com/alserov/rently/proto/gen/user"
+	"google.golang.org/protobuf/types/known/timestamppb"
+	"time"
 )
 
 type Converter interface {
@@ -16,6 +18,7 @@ type Converter interface {
 	CheckIfAuthorizedReqToPb(token string) *user.CheckIfAuthorizedReq
 	RegisterReqToPb(req models.RegisterReq) *user.RegisterReq
 	LoginReqToPb(req models.LoginReq) *user.LoginReq
+	CreateRentReqToPb(req models.CreateRentReq, token string) *carsharing.CreateRentReq
 }
 
 func NewConverter() Converter {
@@ -23,6 +26,24 @@ func NewConverter() Converter {
 }
 
 type converter struct {
+}
+
+func (s *converter) CreateRentReqToPb(req models.CreateRentReq, token string) *carsharing.CreateRentReq {
+	return &carsharing.CreateRentReq{
+		CarUUID:        req.CarUUID,
+		PhoneNumber:    req.PhoneNumber,
+		PassportNumber: req.PassportNumber,
+		PaymentSource:  req.PaymentSource,
+		Token:          token,
+		RentStart: &timestamppb.Timestamp{
+			Seconds: time.Unix(req.RentStart, 0).Unix(),
+			Nanos:   int32(time.Unix(req.RentStart, 0).Nanosecond()),
+		},
+		RentEnd: &timestamppb.Timestamp{
+			Seconds: time.Unix(req.RentEnd, 0).Unix(),
+			Nanos:   int32(time.Unix(req.RentEnd, 0).Nanosecond()),
+		},
+	}
 }
 
 func (s *converter) RegisterReqToPb(req models.RegisterReq) *user.RegisterReq {

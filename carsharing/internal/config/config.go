@@ -25,6 +25,7 @@ type Services struct {
 	Payment struct {
 		ApiKey string `yaml:"apiKey"`
 	} `yaml:"payment"`
+	User string `yaml:"user"`
 }
 
 type Postgres struct {

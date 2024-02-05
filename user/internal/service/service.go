@@ -17,7 +17,7 @@ type Service interface {
 	Register(ctx context.Context, req models.RegisterReq) (models.RegisterRes, error)
 	Login(ctx context.Context, req models.LoginReq) (string, error)
 	GetInfo(ctx context.Context, uuid string) (models.UserInfoRes, error)
-	GetRentInfo(ctx context.Context, uuid string) (models.InfoForRentRes, error)
+	GetRentInfo(ctx context.Context, token string) (models.InfoForRentRes, error)
 	SwitchNotificationsStatus(ctx context.Context, uuid string) error
 	CheckIfAuthorized(ctx context.Context, token string) (string, error)
 }
@@ -71,7 +71,12 @@ func (s *service) GetInfo(ctx context.Context, uuid string) (models.UserInfoRes,
 	return info, nil
 }
 
-func (s *service) GetRentInfo(ctx context.Context, uuid string) (models.InfoForRentRes, error) {
+func (s *service) GetRentInfo(ctx context.Context, token string) (models.InfoForRentRes, error) {
+	uuid, _, err := parseTokenClaims(token)
+	if err != nil {
+		return models.InfoForRentRes{}, err
+	}
+
 	info, err := s.repo.GetInfoForRent(ctx, uuid)
 	if err != nil {
 		return models.InfoForRentRes{}, err
@@ -108,10 +113,14 @@ func (s *service) Login(ctx context.Context, req models.LoginReq) (string, error
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(req.Password)); err != nil {
-		return "", fmt.Errorf("invalid password")
+		fmt.Println(err)
+		return "", &models.Error{
+			Msg:    "invalid password",
+			Status: http.StatusBadRequest,
+		}
 	}
 
-	token, err := newToken(userData.UUID)
+	token, err := newToken(userData.UUID, userData.Role)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate new token: %w", err)
 	}
@@ -142,6 +151,7 @@ func (s *service) Register(ctx context.Context, req models.RegisterReq) (models.
 	req.Password = hashedPassword
 	req.PassportNumber = encrypt(req.PassportNumber)
 	req.PaymentSource = encrypt(req.PaymentSource)
+	req.PhoneNumber = encrypt(req.PhoneNumber)
 
 	if err = s.repo.Register(ctx, req); err != nil {
 		return models.RegisterRes{}, err
@@ -151,7 +161,7 @@ func (s *service) Register(ctx context.Context, req models.RegisterReq) (models.
 	//	return models.RegisterRes{}, fmt.Errorf("failed to send notification: %w", err)
 	//}
 
-	token, err := newToken(req.UUID)
+	token, err := newToken(req.UUID, ROLE_USER)
 	if err != nil {
 		return models.RegisterRes{}, fmt.Errorf("failed to generate new token: %w", err)
 	}

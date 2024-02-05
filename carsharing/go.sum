@@ -22,6 +22,8 @@ github.com/alserov/rently/proto v0.0.0-20240129180428-f2cc68b6bde9 h1:yoZV6EN1Fm
 github.com/alserov/rently/proto v0.0.0-20240129180428-f2cc68b6bde9/go.mod h1:PH/CdDFywo/Fevnt5HfrfP81nNUttnqTAw2oimxUaDY=
 github.com/alserov/rently/proto v0.0.0-20240130173252-f312494928ad h1:JxNkNfDp08H3Daej6Rp05C24gGk5L6AGmOqfX89gadQ=
 github.com/alserov/rently/proto v0.0.0-20240130173252-f312494928ad/go.mod h1:PH/CdDFywo/Fevnt5HfrfP81nNUttnqTAw2oimxUaDY=
+github.com/alserov/rently/proto v0.0.0-20240205140542-e09dc78dec37 h1:iMw2PpS8D4wLfOTmUKuDqiI3PzMjULcKVo33fPwaHKY=
+github.com/alserov/rently/proto v0.0.0-20240205140542-e09dc78dec37/go.mod h1:PH/CdDFywo/Fevnt5HfrfP81nNUttnqTAw2oimxUaDY=
 github.com/bsm/ginkgo/v2 v2.12.0 h1:Ny8MWAHyOepLGlLKYmXG4IEkioBysk6GpaRTLC8zwWs=
 github.com/bsm/ginkgo/v2 v2.12.0/go.mod h1:SwYbGRRDovPVboqFv0tPTcG1sN61LM1Z4ARdbAV9g4c=
 github.com/bsm/gomega v1.27.10 h1:yeMWxP2pV2fG3FgAODIY8EiRE3dy0aeFYt4l7wh6yKA=

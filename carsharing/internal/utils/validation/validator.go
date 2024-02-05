@@ -23,19 +23,21 @@ type Validator interface {
 	ValidateDeleteCarReq(req *carsharing.DeleteCarReq) error
 	ValidateUpdateCarPriceReq(req *carsharing.UpdateCarPriceReq) error
 
-	ValidateGetRentStartingTomorrowReq(req *carsharing.GetRentStartingTomorrowReq) error
+	ValidateGetRentStartingTomorrowReq(req *carsharing.GetRentStartingOnDateReq) error
 }
 
 func NewValidator() Validator {
 	return &validator{
-		phone: regexp.MustCompile(`\b(\d{4})\d{7}\b`),
-		card:  regexp.MustCompile(`^[0-9]{13}(?:[0-9]{3})?$`),
+		regExpPhone:    regexp.MustCompile(`^[1-9]\d{9}$`),
+		regExpPassport: regexp.MustCompile(`^[A-Z0-9]{9}$`),
+		card:           regexp.MustCompile(`^[0-9]{13}(?:[0-9]{3})?$`),
 	}
 }
 
 const (
 	ERR_EMPTY                   = "can not be empty"
 	ERR_INVALID_PHONE_NUMBER    = "invalid phone number"
+	ERR_INVALID_PASSPORT_NUMBER = "invalid passport number"
 	ERR_INVALID_CARD_NUMBER     = "invalid card number"
 	ERR_INVALID_SPEED           = "invalid speed"
 	ERR_INVALID_SEATS_AMOUNT    = "invalid seats amount"
@@ -45,11 +47,12 @@ const (
 )
 
 type validator struct {
-	phone *regexp.Regexp
-	card  *regexp.Regexp
+	regExpPhone    *regexp.Regexp
+	regExpPassport *regexp.Regexp
+	card           *regexp.Regexp
 }
 
-func (v *validator) ValidateGetRentStartingTomorrowReq(req *carsharing.GetRentStartingTomorrowReq) error {
+func (v *validator) ValidateGetRentStartingTomorrowReq(req *carsharing.GetRentStartingOnDateReq) error {
 	if req.StartingOn.AsTime().Before(time.Now()) {
 		return status.Error(codes.InvalidArgument, ERR_INVALID_RENT_START_TIME)
 	}
@@ -176,9 +179,13 @@ func (v *validator) ValidateCreateRentReq(req *carsharing.CreateRentReq) error {
 		return status.Error(codes.InvalidArgument, fmt.Sprintf("carsharing uuid %s", ERR_EMPTY))
 	}
 
-	if req.UuidIfAuthorized != "" {
+	if req.Token == "" {
 		if req.GetPaymentSource() == "" {
 			return status.Error(codes.InvalidArgument, fmt.Sprintf("card number %s", ERR_EMPTY))
+		}
+
+		if err := v.validatePassportNumber(req.GetPassportNumber()); err != nil {
+			return status.Error(codes.InvalidArgument, ERR_INVALID_PASSPORT_NUMBER)
 		}
 
 		//if err := v.validateCardCredentials(req.GetPaymentSource()); err != nil {
@@ -194,7 +201,16 @@ func (v *validator) ValidateCreateRentReq(req *carsharing.CreateRentReq) error {
 }
 
 func (v *validator) validatePhoneNumber(phoneNumber string) error {
-	valid := v.phone.MatchString(phoneNumber)
+	valid := v.regExpPhone.MatchString(phoneNumber)
+	if !valid {
+		return status.Error(codes.InvalidArgument, ERR_INVALID_PHONE_NUMBER)
+	}
+
+	return nil
+}
+
+func (v *validator) validatePassportNumber(pNumb string) error {
+	valid := v.regExpPassport.MatchString(pNumb)
 	if !valid {
 		return status.Error(codes.InvalidArgument, ERR_INVALID_PHONE_NUMBER)
 	}

@@ -47,6 +47,8 @@ type Carsharing interface {
 	DeleteCar(c *fiber.Ctx) error
 	UpdateCarPrice(c *fiber.Ctx) error
 
+	CreateRent(c *fiber.Ctx) error
+
 	GetAvailableCars(c *fiber.Ctx) error
 	GetCarsByParams(c *fiber.Ctx) error
 	GetCarByUUID(c *fiber.Ctx) error
@@ -67,6 +69,28 @@ type carsharing struct {
 	userClient       usr.UserClient
 
 	breaker *grpcbreaker.Breaker
+}
+
+func (csh *carsharing) CreateRent(c *fiber.Ctx) error {
+	var req models.CreateRentReq
+	if err := decode(c.Request().Body(), &req, csh.valid); err != nil {
+		c.Status(http.StatusBadRequest)
+		handleResponseError(c.Send(marshal(models.Error{Err: err.Error()})))
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(c.Context(), time.Duration(csh.writeTimeout.Seconds()*0.80*float64(time.Second)))
+	defer cancel()
+
+	token := c.Cookies(middleware.AUTH_TOKEN)
+	res, err := grpcbreaker.Execute(ctx, csh.carsharingClient.CreateRent, csh.convert.CreateRentReqToPb(req, token), csh.breaker)
+	if err != nil {
+		handleServiceError(c.Response(), err)
+		return nil
+	}
+
+	handleResponseError(c.Send(marshal(map[string]string{"rentUUID": (*res).RentUUID})))
+	return nil
 }
 
 func (csh *carsharing) GetImage(c *fiber.Ctx) error {
@@ -223,8 +247,9 @@ func (csh *carsharing) CreateCar(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(c.Context(), time.Duration(csh.writeTimeout.Seconds()*0.80*float64(time.Second)))
 	defer cancel()
 
-	if err := csh.checkIfAuthorized(ctx, c); err != nil {
-		handleResponseError(c.Status(http.StatusMethodNotAllowed).Send(marshal(err)))
+	token := c.Context().Value(middleware.AUTH_TOKEN).(string)
+	if err := csh.checkIfAuthorized(ctx, token); err != nil {
+		c.Status(http.StatusMethodNotAllowed)
 		return nil
 	}
 
@@ -249,13 +274,10 @@ func (csh *carsharing) transformImageLinks(cars []*carsh.CarMainInfo) []*carsh.C
 	return c
 }
 
-func (csh *carsharing) checkIfAuthorized(ctx context.Context, c *fiber.Ctx) error {
-	token := c.Context().Value(middleware.AUTH_TOKEN).(string)
-
+func (csh *carsharing) checkIfAuthorized(ctx context.Context, token string) error {
 	res, err := grpcbreaker.Execute(ctx, csh.userClient.CheckIfAuthorized, csh.convert.CheckIfAuthorizedReqToPb(token), csh.breaker)
 	if err != nil {
-		handleServiceError(c.Response(), err)
-		return nil
+		return err
 	}
 
 	if !(*res).IsAuthorized {

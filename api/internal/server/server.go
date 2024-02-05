@@ -1,8 +1,8 @@
 package server
 
 import (
+	"github.com/alserov/rently/api/internal/clients"
 	"github.com/alserov/rently/api/internal/server/domains"
-	"github.com/alserov/rently/api/internal/utils/clients"
 	"github.com/alserov/rently/proto/gen/user"
 	"time"
 )

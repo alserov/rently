@@ -36,6 +36,6 @@ type UserInfoRes struct {
 }
 
 type InfoForRentRes struct {
-	PassportNumber string
-	PhoneNumber    string
+	PassportNumber string `db:"passport_number"`
+	PhoneNumber    string `db:"phone_number"`
 }

@@ -182,6 +182,7 @@ func handleServiceError(w *fasthttp.Response, err error) {
 			w.SetStatusCode(http.StatusInternalServerError)
 		case codes.NotFound:
 			w.SetStatusCode(http.StatusNotFound)
+			w.SetBody(marshal(models.Error{Err: st.Message()}))
 		case codes.InvalidArgument:
 			w.SetStatusCode(http.StatusBadRequest)
 			w.SetBody(marshal(models.Error{

@@ -2,11 +2,11 @@ package app
 
 import (
 	"fmt"
+	"github.com/alserov/rently/api/internal/clients"
 	"github.com/alserov/rently/api/internal/config"
 	"github.com/alserov/rently/api/internal/log"
 	"github.com/alserov/rently/api/internal/routes"
 	"github.com/alserov/rently/api/internal/server"
-	"github.com/alserov/rently/api/internal/utils/clients"
 	"github.com/gofiber/fiber/v2"
 	"log/slog"
 	"os"

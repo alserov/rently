@@ -92,12 +92,12 @@ func (s *server) GetInfo(ctx context.Context, req *user.GetInfoReq) (*user.UserI
 	return s.convert.UserInfoResToPb(info), nil
 }
 
-func (s *server) GetInfoForRent(ctx context.Context, req *user.GetInfoReq) (*user.GetInfoForRentRes, error) {
-	if err := s.valid.ValidateGetInfoReq(req); err != nil {
+func (s *server) GetInfoForRent(ctx context.Context, req *user.GetInfoForRentReq) (*user.GetInfoForRentRes, error) {
+	if err := s.valid.ValidateGetInfoForRentReq(req); err != nil {
 		return nil, err
 	}
 
-	info, err := s.service.GetRentInfo(ctx, req.UUID)
+	info, err := s.service.GetRentInfo(ctx, req.Token)
 	if err != nil {
 		return nil, s.handleError(err)
 	}

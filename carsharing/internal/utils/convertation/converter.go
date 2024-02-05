@@ -25,7 +25,7 @@ type PbToModel interface {
 type ModelToPb interface {
 	CreateRentToPb(res models.CreateRentRes) *carsharing.CreateRentRes
 	CheckRentToPb(res models.Rent) *carsharing.CheckRentRes
-	RentsStartOnDateToPb(res []models.RentStartData) *carsharing.GetRentStartingTomorrowRes
+	RentsStartOnDateToPb(res []models.RentStartData) *carsharing.GetRentStartingOnDateRes
 	CarsToPb(res []models.CarMainInfo) *carsharing.GetCarsRes
 	CarToPb(res models.Car) *carsharing.Car
 	GetImageResToPb(res []byte) *carsharing.GetImageRes
@@ -38,8 +38,8 @@ func NewServerConverter() ServerConverter {
 type serverConverter struct {
 }
 
-func (s *serverConverter) RentsStartOnDateToPb(res []models.RentStartData) *carsharing.GetRentStartingTomorrowRes {
-	r := &carsharing.GetRentStartingTomorrowRes{}
+func (s *serverConverter) RentsStartOnDateToPb(res []models.RentStartData) *carsharing.GetRentStartingOnDateRes {
+	r := &carsharing.GetRentStartingOnDateRes{}
 	for _, rent := range res {
 		r.RentsInfo = append(r.RentsInfo, &carsharing.CheckRentRes{
 			CarUUID:   rent.CarUUID,
@@ -144,13 +144,13 @@ func (s *serverConverter) CheckRentToPb(res models.Rent) *carsharing.CheckRentRe
 
 func (s *serverConverter) CreateRentReqToService(req *carsharing.CreateRentReq) models.CreateRentReq {
 	return models.CreateRentReq{
-		CarUUID:          req.CarUUID,
-		PhoneNumber:      req.PhoneNumber,
-		PassportNumber:   req.PassportNumber,
-		PaymentSource:    req.PaymentSource,
-		UuidIfAuthorized: req.UuidIfAuthorized,
-		RentStart:        req.RentStart.AsTime(),
-		RentEnd:          req.RentEnd.AsTime(),
+		CarUUID:        req.CarUUID,
+		PhoneNumber:    req.PhoneNumber,
+		PassportNumber: req.PassportNumber,
+		PaymentSource:  req.PaymentSource,
+		Token:          req.Token,
+		RentStart:      req.RentStart.AsTime(),
+		RentEnd:        req.RentEnd.AsTime(),
 	}
 }
 

@@ -4,7 +4,7 @@ go 1.21.0
 
 require (
 	github.com/IBM/sarama v1.42.1
-	github.com/alserov/rently/proto v0.0.0-20240129180428-f2cc68b6bde9
+	github.com/alserov/rently/proto v0.0.0-20240205142442-59dd5af7b2d2
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/golang-migrate/migrate/v4 v4.17.0

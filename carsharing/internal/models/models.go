@@ -23,7 +23,7 @@ type CreateRentReq struct {
 	RentUUID string
 	ChargeID string
 
-	UuidIfAuthorized string
+	Token string
 
 	CarUUID        string
 	PhoneNumber    string

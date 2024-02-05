@@ -15,10 +15,10 @@ const (
 	ENV_SECRET_KEY = "SECRET_KEY"
 )
 
-func newToken(uuid string) (string, error) {
+func newToken(uuid string, role string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, models.Claims{
 		UUID: uuid,
-		Role: ROLE_USER,
+		Role: role,
 		RegisteredClaims: &jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 21)),
 		},
@@ -38,12 +38,12 @@ func newToken(uuid string) (string, error) {
 func parseTokenClaims(token string) (string, string, error) {
 	c := models.Claims{}
 
-	_, err := jwt.ParseWithClaims(token, c, func(token *jwt.Token) (interface{}, error) {
+	_, err := jwt.ParseWithClaims(token, &c, func(token *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv(ENV_SECRET_KEY)), nil
 	})
 	if err != nil {
 		return "", "", &models.Error{
-			Msg:    fmt.Sprintf("failed to parse token claims: %v", err),
+			Msg:    "invalid token provided",
 			Status: http.StatusBadRequest,
 		}
 	}

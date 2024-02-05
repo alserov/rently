@@ -10,6 +10,7 @@ import (
 type Validator interface {
 	ValidateRegisterReq(req *user.RegisterReq) error
 	ValidateLoginReq(req *user.LoginReq) error
+	ValidateGetInfoForRentReq(req *user.GetInfoForRentReq) error
 	ValidateGetInfoReq(req *user.GetInfoReq) error
 	ValidateSwitchNotificationsStatusReq(req *user.SwitchNotificationsStatusReq) error
 	ValidateCheckIfAuthorizedReq(req *user.CheckIfAuthorizedReq) error
@@ -23,12 +24,6 @@ func NewValidator() Validator {
 	}
 }
 
-type validator struct {
-	regExpEmail    *regexp.Regexp
-	regExpPhone    *regexp.Regexp
-	regExpPassport *regexp.Regexp
-}
-
 const (
 	ERR_INVALID_EMAIL           = "invalid email provided"
 	ERR_INVALID_PHONE_NUMBER    = "provided invalid phone number"
@@ -38,6 +33,28 @@ const (
 	ERR_EMPTY_UUID              = "uuid can not be empty"
 	ERR_EMPTY_TOKEN             = "token can not be empty"
 )
+
+type validator struct {
+	regExpEmail    *regexp.Regexp
+	regExpPhone    *regexp.Regexp
+	regExpPassport *regexp.Regexp
+}
+
+func (v validator) ValidateGetInfoForRentReq(req *user.GetInfoForRentReq) error {
+	if req.Token == "" {
+		return status.Error(codes.InvalidArgument, ERR_EMPTY_TOKEN)
+	}
+
+	return nil
+}
+
+func (v validator) ValidateGetInfoReq(req *user.GetInfoReq) error {
+	if req.UUID == "" {
+		return status.Error(codes.InvalidArgument, ERR_EMPTY_UUID)
+	}
+
+	return nil
+}
 
 func (v validator) ValidateRegisterReq(req *user.RegisterReq) error {
 	if ok := v.regExpEmail.MatchString(req.Email); !ok {
@@ -70,14 +87,6 @@ func (v validator) ValidateLoginReq(req *user.LoginReq) error {
 
 	if len(req.Password) < 7 {
 		return status.Error(codes.InvalidArgument, ERR_INVALID_PASSWORD)
-	}
-
-	return nil
-}
-
-func (v validator) ValidateGetInfoReq(req *user.GetInfoReq) error {
-	if req.GetUUID() == "" {
-		return status.Error(codes.InvalidArgument, ERR_EMPTY_UUID)
 	}
 
 	return nil

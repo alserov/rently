@@ -64,7 +64,7 @@ const (
 	OP_GET_CARS_BY_PARAMS = "GET CARS BY PARAMS"
 )
 
-func (s *server) GetRentStartingTomorrow(ctx context.Context, req *carsharing.GetRentStartingTomorrowReq) (*carsharing.GetRentStartingTomorrowRes, error) {
+func (s *server) GetRentStartingOnDate(ctx context.Context, req *carsharing.GetRentStartingOnDateReq) (*carsharing.GetRentStartingOnDateRes, error) {
 	if err := s.valid.ValidateGetRentStartingTomorrowReq(req); err != nil {
 		return nil, err
 	}
@@ -134,8 +134,6 @@ func (s *server) CreateRent(ctx context.Context, req *carsharing.CreateRentReq) 
 	if err := s.valid.ValidateCreateRentReq(req); err != nil {
 		return nil, err
 	}
-
-	fmt.Println("req")
 
 	res, err := s.service.CreateRent(ctx, s.convert.CreateRentReqToService(req))
 	if err != nil {

@@ -28,7 +28,7 @@ func (r rentReminder) Notify() {
 
 	tomorrow := time.Now().Add(time.Hour * 24)
 
-	rents, err := r.carsharingClient.GetRentStartingTomorrow(ctx, &carsharing.GetRentStartingTomorrowReq{
+	rents, err := r.carsharingClient.GetRentStartingOnDate(ctx, &carsharing.GetRentStartingOnDateReq{
 		StartingOn: &timestamppb.Timestamp{
 			Seconds: tomorrow.Unix(),
 			Nanos:   int32(tomorrow.Nanosecond()),

@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/alserov/rently/carsharing/internal/clients"
 	"github.com/alserov/rently/carsharing/internal/db"
-	"github.com/alserov/rently/carsharing/internal/grpc_clients"
 	"github.com/alserov/rently/carsharing/internal/log"
 	"github.com/alserov/rently/carsharing/internal/models"
 	"github.com/alserov/rently/carsharing/internal/notifications"
@@ -49,7 +49,7 @@ type Params struct {
 	Payment       payment.Payer
 	ImageStorage  storage.ImageStorage
 	Notifications notifications.Notifier
-	UserClient    grpc_clients.UserClient
+	UserClient    clients.UserClient
 	Repo          db.Repository
 }
 
@@ -60,6 +60,7 @@ func NewService(p Params) Service {
 		imageStorage: p.ImageStorage,
 		payment:      p.Payment,
 		notification: p.Notifications,
+		userClient:   p.UserClient,
 	}
 }
 
@@ -70,7 +71,7 @@ type service struct {
 
 	payment payment.Payer
 
-	userClient grpc_clients.UserClient
+	userClient clients.UserClient
 
 	imageStorage storage.ImageStorage
 
@@ -248,17 +249,28 @@ func (s *service) CheckRent(ctx context.Context, rentUUID string) (res models.Re
 func (s *service) CreateRent(ctx context.Context, req models.CreateRentReq) (models.CreateRentRes, error) {
 	req.RentUUID = uuid.New().String()
 
-	if req.UuidIfAuthorized != "" {
-		info, err := s.userClient.GetInfo(ctx, req.UuidIfAuthorized)
+	available, err := s.repo.CheckIfCarAvailableInPeriod(ctx, req.CarUUID, req.RentStart, req.RentEnd)
+	if err != nil {
+		return models.CreateRentRes{}, err
+	}
+	if !available {
+		return models.CreateRentRes{}, &models.Error{
+			Msg:    "this car is already rented in this period",
+			Status: http.StatusBadRequest,
+		}
+	}
+
+	if req.Token != "" {
+		info, err := s.userClient.GetPassportAndPhone(ctx, req.Token)
 		if err != nil {
 			return models.CreateRentRes{}, err
 		}
 
 		req.PhoneNumber = info.PhoneNumber
-		req.PhoneNumber = info.PassportNumber
+		req.PassportNumber = info.PassportNumber
 	}
 
-	rentPrice, tx, err := s.repo.CreateRentTx(ctx, req)
+	carPricePerDay, tx, err := s.repo.CreateRentTx(ctx, req)
 	defer func() {
 		if err = tx.Rollback(); err != nil {
 			s.log.Err("failed to commit tx", err, "op: create rent")
@@ -267,6 +279,8 @@ func (s *service) CreateRent(ctx context.Context, req models.CreateRentReq) (mod
 	if err != nil {
 		return models.CreateRentRes{}, fmt.Errorf("repository error: %w", err)
 	}
+
+	rentPrice := carPricePerDay * float32(req.RentEnd.Sub(req.RentStart).Hours()/24) * 100
 
 	chargeID, err := s.payment.Debit(req.PaymentSource, rentPrice)
 	if err != nil {
