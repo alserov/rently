@@ -28,7 +28,7 @@ type UserClient interface {
 	CheckIfAuthorized(ctx context.Context, in *CheckIfAuthorizedReq, opts ...grpc.CallOption) (*CheckIfAuthorizedRes, error)
 	ResetPassword(ctx context.Context, in *ResetPasswordReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	GetInfo(ctx context.Context, in *GetInfoReq, opts ...grpc.CallOption) (*UserInfoRes, error)
-	GetInfoForRent(ctx context.Context, in *GetRentInfoReq, opts ...grpc.CallOption) (*GetInfoForRentRes, error)
+	GetInfoForRent(ctx context.Context, in *GetInfoForRentReq, opts ...grpc.CallOption) (*GetInfoForRentRes, error)
 	SwitchStatusNotifications(ctx context.Context, in *SwitchNotificationsStatusReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
@@ -85,7 +85,7 @@ func (c *userClient) GetInfo(ctx context.Context, in *GetInfoReq, opts ...grpc.C
 	return out, nil
 }
 
-func (c *userClient) GetInfoForRent(ctx context.Context, in *GetRentInfoReq, opts ...grpc.CallOption) (*GetInfoForRentRes, error) {
+func (c *userClient) GetInfoForRent(ctx context.Context, in *GetInfoForRentReq, opts ...grpc.CallOption) (*GetInfoForRentRes, error) {
 	out := new(GetInfoForRentRes)
 	err := c.cc.Invoke(ctx, "/User/GetInfoForRent", in, out, opts...)
 	if err != nil {
@@ -112,7 +112,7 @@ type UserServer interface {
 	CheckIfAuthorized(context.Context, *CheckIfAuthorizedReq) (*CheckIfAuthorizedRes, error)
 	ResetPassword(context.Context, *ResetPasswordReq) (*emptypb.Empty, error)
 	GetInfo(context.Context, *GetInfoReq) (*UserInfoRes, error)
-	GetInfoForRent(context.Context, *GetRentInfoReq) (*GetInfoForRentRes, error)
+	GetInfoForRent(context.Context, *GetInfoForRentReq) (*GetInfoForRentRes, error)
 	SwitchStatusNotifications(context.Context, *SwitchNotificationsStatusReq) (*emptypb.Empty, error)
 	mustEmbedUnimplementedUserServer()
 }
@@ -136,7 +136,7 @@ func (UnimplementedUserServer) ResetPassword(context.Context, *ResetPasswordReq)
 func (UnimplementedUserServer) GetInfo(context.Context, *GetInfoReq) (*UserInfoRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetInfo not implemented")
 }
-func (UnimplementedUserServer) GetInfoForRent(context.Context, *GetRentInfoReq) (*GetInfoForRentRes, error) {
+func (UnimplementedUserServer) GetInfoForRent(context.Context, *GetInfoForRentReq) (*GetInfoForRentRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetInfoForRent not implemented")
 }
 func (UnimplementedUserServer) SwitchStatusNotifications(context.Context, *SwitchNotificationsStatusReq) (*emptypb.Empty, error) {
@@ -246,7 +246,7 @@ func _User_GetInfo_Handler(srv interface{}, ctx context.Context, dec func(interf
 }
 
 func _User_GetInfoForRent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetRentInfoReq)
+	in := new(GetInfoForRentReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -258,7 +258,7 @@ func _User_GetInfoForRent_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: "/User/GetInfoForRent",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServer).GetInfoForRent(ctx, req.(*GetRentInfoReq))
+		return srv.(UserServer).GetInfoForRent(ctx, req.(*GetInfoForRentReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }

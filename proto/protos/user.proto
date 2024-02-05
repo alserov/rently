@@ -10,7 +10,7 @@ service User {
   rpc CheckIfAuthorized(CheckIfAuthorizedReq) returns(CheckIfAuthorizedRes);
   rpc ResetPassword(ResetPasswordReq) returns(google.protobuf.Empty);
   rpc GetInfo(GetInfoReq) returns(UserInfoRes);
-  rpc GetInfoForRent(GetRentInfoReq) returns(GetInfoForRentRes);
+  rpc GetInfoForRent(GetInfoForRentReq) returns(GetInfoForRentRes);
   rpc SwitchStatusNotifications(SwitchNotificationsStatusReq) returns(google.protobuf.Empty);
 }
 
@@ -55,7 +55,7 @@ message GetInfoReq {
   string UUID = 1;
 }
 
-message GetRentInfoReq {
+message GetInfoForRentReq {
   string Token = 1;
 }
 
