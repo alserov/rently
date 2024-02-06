@@ -8,6 +8,7 @@ import (
 	"github.com/alserov/rently/user/internal/notifications"
 	"github.com/alserov/rently/user/internal/server"
 	"github.com/alserov/rently/user/internal/service"
+	"github.com/alserov/rently/user/internal/utils/broker/rabbit"
 	"github.com/alserov/rently/user/internal/workers"
 	"google.golang.org/grpc"
 	"log/slog"
@@ -29,11 +30,22 @@ func MustStart(cfg *config.Config) {
 
 	l.Info("starting app", slog.Int("port", cfg.Port))
 
-	go workers.StartNotifier(time.NewTicker(time.Hour*24), workers.NewRentNotifier())
+	rbtConn, rbtCh, err := rabbit.Dial(cfg.Broker.Rabbit.Addr)
+	defer func() {
+		if err = rbtConn.Close(); err != nil {
+			l.Error("failed to close rabbit connection", slog.String("error", err.Error()))
+		}
+		if err = rbtCh.Close(); err != nil {
+			l.Error("failed to close rabbit channel", slog.String("error", err.Error()))
+		}
+	}()
+	if err != nil {
+		panic(err)
+	}
 
 	srvc := service.NewService(service.Params{
 		Repo:     mysql.NewRepository(mysql.MustConnect(cfg.DB.GetDSN())),
-		Notifier: notifications.NewNotifier(),
+		Notifier: notifications.NewNotifier(rabbit.NewProducer(rbtCh), cfg.Broker.Rabbit.Topics),
 	})
 
 	gRPCServer := grpc.NewServer()
@@ -42,6 +54,7 @@ func MustStart(cfg *config.Config) {
 		Service: srvc,
 	})
 
+	go workers.StartNotifier(time.NewTicker(time.Hour*24), workers.NewRentNotifier())
 	l.Info("app is running")
 	run(gRPCServer, cfg.Port)
 	l.Info("app was stopped")

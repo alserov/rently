@@ -3,6 +3,7 @@ package workers
 import (
 	"context"
 	"github.com/alserov/rently/proto/gen/carsharing"
+	"github.com/alserov/rently/user/internal/config"
 	"github.com/alserov/rently/user/internal/db"
 	"github.com/alserov/rently/user/internal/log"
 	"github.com/alserov/rently/user/internal/utils/broker"
@@ -15,14 +16,19 @@ func NewRentNotifier() Actor {
 	return &rentReminder{}
 }
 
+const (
+	RENT_NOTIFIER_ID = "10"
+)
+
 type rentReminder struct {
 	log              log.Logger
 	carsharingClient carsharing.CarsClient
 	repo             db.Repository
 	producer         broker.Producer
+	topics           config.Topics
 }
 
-func (r rentReminder) Notify() {
+func (r *rentReminder) Notify() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
@@ -44,12 +50,14 @@ func (r rentReminder) Notify() {
 		if err != nil {
 			r.log.Error("failed to get user from db", slog.String("error", err.Error()))
 		}
-		if err = r.producer.Produce(ProducerMessage{
+
+		err = r.producer.Produce(ctx, ProducerMessage{
 			Username:  user.Username,
 			Email:     user.Email,
 			RentStart: rent.RentStart.AsTime(),
 			RentEnd:   rent.RentEnd.AsTime(),
-		}); err != nil {
+		}, RENT_NOTIFIER_ID, r.topics.Email)
+		if err != nil {
 			r.log.Error("failed to produce notifying message", slog.String("error", err.Error()))
 		}
 	}

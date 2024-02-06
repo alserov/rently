@@ -13,6 +13,8 @@ type Config struct {
 	Port int `yaml:"port"`
 
 	DB Mysql `yaml:"db"`
+
+	Broker Broker `yaml:"broker"`
 }
 
 type Mysql struct {
@@ -25,6 +27,17 @@ type Mysql struct {
 
 func (mysql *Mysql) GetDSN() string {
 	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", mysql.User, mysql.Password, mysql.Host, mysql.Port, mysql.Name)
+}
+
+type Broker struct {
+	Rabbit struct {
+		Addr   string `yaml:"addr"`
+		Topics Topics `yaml:"topics"`
+	} `yaml:"rabbit"`
+}
+
+type Topics struct {
+	Email string `yaml:"email"`
 }
 
 func MustLoad() *Config {

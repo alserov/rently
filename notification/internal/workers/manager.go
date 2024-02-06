@@ -1,3 +1,4 @@
+// nolint
 package workers
 
 type Manager interface {
@@ -13,6 +14,6 @@ type manager struct {
 }
 
 func (m manager) Add(worker Worker) {
-	worker.Start()
 	m.workers = append(m.workers, worker)
+	go worker.Start()
 }

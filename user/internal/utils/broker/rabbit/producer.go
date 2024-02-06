@@ -1,19 +1,21 @@
-package kafka
+package rabbit
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/IBM/sarama"
 	"github.com/alserov/rently/user/internal/utils/broker"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func NewProducer() broker.Producer {
-	return &producer{}
+func NewProducer(ch *amqp.Channel) broker.Producer {
+	return &producer{
+		ch: ch,
+	}
 }
 
 type producer struct {
-	p sarama.SyncProducer
+	ch *amqp.Channel
 }
 
 func (p producer) Produce(ctx context.Context, value any, id string, q string) error {
@@ -22,13 +24,12 @@ func (p producer) Produce(ctx context.Context, value any, id string, q string) e
 		return fmt.Errorf("failed to marshal value: %w", err)
 	}
 
-	_, _, err = p.p.SendMessage(&sarama.ProducerMessage{
-		Topic: q,
-		Key:   sarama.StringEncoder(id),
-		Value: sarama.StringEncoder(b),
+	err = p.ch.PublishWithContext(ctx, "", q, false, false, amqp.Publishing{
+		CorrelationId: id,
+		Body:          b,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to send message: %w", err)
+		return fmt.Errorf("failed to publish a message: %w", err)
 	}
 
 	return nil

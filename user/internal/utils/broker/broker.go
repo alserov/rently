@@ -1,9 +1,7 @@
 package broker
 
-type Producer interface {
-	Produce(value ...any) error
-}
+import "context"
 
-type Consumer interface {
-	Consume() any
+type Producer interface {
+	Produce(ctx context.Context, value any, id string, q string) error
 }

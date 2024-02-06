@@ -157,9 +157,9 @@ func (s *service) Register(ctx context.Context, req models.RegisterReq) (models.
 		return models.RegisterRes{}, err
 	}
 
-	//if err = s.notifier.Registration(req.Email); err != nil {
-	//	return models.RegisterRes{}, fmt.Errorf("failed to send notification: %w", err)
-	//}
+	if err = s.notifier.Registration(ctx, req.Email); err != nil {
+		return models.RegisterRes{}, fmt.Errorf("failed to send notification: %w", err)
+	}
 
 	token, err := newToken(req.UUID, ROLE_USER)
 	if err != nil {

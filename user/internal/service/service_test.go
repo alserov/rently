@@ -6,7 +6,6 @@ import (
 	"github.com/alserov/rently/user/internal/db"
 	repomock "github.com/alserov/rently/user/internal/db/mocks"
 	"github.com/alserov/rently/user/internal/models"
-	notmock "github.com/alserov/rently/user/internal/notifications/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"os"
@@ -38,15 +37,15 @@ func TestService_Register(t *testing.T) {
 		Return(db.LoginInfo{}, errors.New("user not found")).
 		Times(1)
 
-	notif := notmock.NewMockNotifier(crtl)
+	//notif := notmock.NewMockNotifier(crtl)
 	//notif.EXPECT().
 	//	Registration(req.Email).
 	//	Return(nil).
 	//	Times(1)
 
 	s := NewService(Params{
-		Repo:     repo,
-		Notifier: notif,
+		Repo: repo,
+		//Notifier: notif,
 	})
 
 	res, err := s.Register(context.Background(), req)
@@ -78,11 +77,11 @@ func TestService_Login(t *testing.T) {
 		}, nil).
 		Times(1)
 
-	notif := notmock.NewMockNotifier(crtl)
+	//notif := notmock.NewMockNotifier(crtl)
 
 	s := NewService(Params{
-		Repo:     repo,
-		Notifier: notif,
+		Repo: repo,
+		//Notifier: notif,
 	})
 
 	token, err := s.Login(context.Background(), req)
