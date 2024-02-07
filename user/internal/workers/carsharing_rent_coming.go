@@ -28,7 +28,7 @@ type rentReminder struct {
 	topics           config.Topics
 }
 
-func (r *rentReminder) Notify() {
+func (r *rentReminder) Action() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
