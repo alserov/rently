@@ -22,6 +22,7 @@ type RentStartData struct {
 type CreateRentReq struct {
 	RentUUID string
 	ChargeID string
+	UserUUID string
 
 	Token string
 
@@ -99,4 +100,5 @@ type UpdateCarPriceReq struct {
 type UserInfo struct {
 	PhoneNumber    string
 	PassportNumber string
+	UUID           string
 }

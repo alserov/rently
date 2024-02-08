@@ -3,7 +3,7 @@ port: 3005
 
 
 broker:
-  addr: amqp://rabbitmq:1787@localhost:5672
+  addr: amqp://rabbitmq:1787@localhost:6672
   topics:
     metrics:
       responseTime: CARSHARING_RESPONSE_TIME

@@ -22,7 +22,7 @@ type userClient struct {
 }
 
 func (u userClient) GetPassportAndPhone(ctx context.Context, token string) (models.UserInfo, error) {
-	info, err := u.cl.GetInfoForRent(ctx, &user.GetRentInfoReq{Token: token})
+	info, err := u.cl.GetInfoForRent(ctx, &user.GetInfoForRentReq{Token: token})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
@@ -43,5 +43,6 @@ func (u userClient) GetPassportAndPhone(ctx context.Context, token string) (mode
 	return models.UserInfo{
 		PassportNumber: info.PassportNumber,
 		PhoneNumber:    info.PhoneNumber,
+		UUID:           info.UUID,
 	}, nil
 }

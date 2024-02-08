@@ -65,6 +65,8 @@ const (
 )
 
 func (s *server) GetRentStartingOnDate(ctx context.Context, req *carsharing.GetRentStartingOnDateReq) (*carsharing.GetRentStartingOnDateRes, error) {
+	ctx = s.ctxWithID(ctx)
+
 	if err := s.valid.ValidateGetRentStartingTomorrowReq(req); err != nil {
 		return nil, err
 	}
@@ -78,6 +80,8 @@ func (s *server) GetRentStartingOnDate(ctx context.Context, req *carsharing.GetR
 }
 
 func (s *server) GetImage(ctx context.Context, req *carsharing.GetImageReq) (*carsharing.GetImageRes, error) {
+	ctx = s.ctxWithID(ctx)
+
 	if err := s.valid.ValidateGetCarImageReq(req); err != nil {
 		return nil, err
 	}
@@ -91,6 +95,7 @@ func (s *server) GetImage(ctx context.Context, req *carsharing.GetImageReq) (*ca
 }
 
 func (s *server) CreateCar(ctx context.Context, req *carsharing.CreateCarReq) (*emptypb.Empty, error) {
+	ctx = s.ctxWithID(ctx)
 	start := time.Now()
 
 	if err := s.valid.ValidateCreateCarReq(req); err != nil {
@@ -107,6 +112,7 @@ func (s *server) CreateCar(ctx context.Context, req *carsharing.CreateCarReq) (*
 }
 
 func (s *server) DeleteCar(ctx context.Context, req *carsharing.DeleteCarReq) (*emptypb.Empty, error) {
+	ctx = s.ctxWithID(ctx)
 	if err := s.valid.ValidateDeleteCarReq(req); err != nil {
 		return nil, err
 	}
@@ -119,6 +125,7 @@ func (s *server) DeleteCar(ctx context.Context, req *carsharing.DeleteCarReq) (*
 }
 
 func (s *server) UpdateCarPrice(ctx context.Context, req *carsharing.UpdateCarPriceReq) (*emptypb.Empty, error) {
+	ctx = s.ctxWithID(ctx)
 	if err := s.valid.ValidateUpdateCarPriceReq(req); err != nil {
 		return nil, err
 	}
@@ -131,6 +138,10 @@ func (s *server) UpdateCarPrice(ctx context.Context, req *carsharing.UpdateCarPr
 }
 
 func (s *server) CreateRent(ctx context.Context, req *carsharing.CreateRentReq) (*carsharing.CreateRentRes, error) {
+	ctx = s.ctxWithID(ctx)
+
+	s.log.Debug("received create rent request", slog.String("id", ctx.Value("id").(string)))
+
 	if err := s.valid.ValidateCreateRentReq(req); err != nil {
 		return nil, err
 	}
@@ -144,6 +155,7 @@ func (s *server) CreateRent(ctx context.Context, req *carsharing.CreateRentReq) 
 }
 
 func (s *server) CancelRent(ctx context.Context, req *carsharing.CancelRentReq) (*emptypb.Empty, error) {
+	ctx = s.ctxWithID(ctx)
 	if err := s.valid.ValidateCancelRentReq(req); err != nil {
 		return nil, err
 	}
@@ -156,6 +168,7 @@ func (s *server) CancelRent(ctx context.Context, req *carsharing.CancelRentReq) 
 }
 
 func (s *server) CheckRent(ctx context.Context, req *carsharing.CheckRentReq) (*carsharing.CheckRentRes, error) {
+	ctx = s.ctxWithID(ctx)
 	if err := s.valid.ValidateCheckRentReq(req); err != nil {
 		return nil, err
 	}
@@ -169,6 +182,7 @@ func (s *server) CheckRent(ctx context.Context, req *carsharing.CheckRentReq) (*
 }
 
 func (s *server) GetAvailableCars(ctx context.Context, req *carsharing.GetAvailableCarsReq) (*carsharing.GetCarsRes, error) {
+	ctx = s.ctxWithID(ctx)
 	if err := s.valid.ValidateGetAvailableCarsReq(req); err != nil {
 		return nil, err
 	}
@@ -182,6 +196,7 @@ func (s *server) GetAvailableCars(ctx context.Context, req *carsharing.GetAvaila
 }
 
 func (s *server) GetCarsByParams(ctx context.Context, req *carsharing.GetCarsByParamsReq) (*carsharing.GetCarsRes, error) {
+	ctx = s.ctxWithID(ctx)
 	start := time.Now()
 
 	if err := s.valid.ValidateGetCarsByParamsReq(req); err != nil {
@@ -211,6 +226,7 @@ func (s *server) GetCarsByParams(ctx context.Context, req *carsharing.GetCarsByP
 }
 
 func (s *server) GetCarByUUID(ctx context.Context, req *carsharing.GetCarByUUIDReq) (*carsharing.Car, error) {
+	ctx = s.ctxWithID(ctx)
 	if err := s.valid.ValidateGetCarByUUID(req); err != nil {
 		return nil, err
 	}

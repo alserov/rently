@@ -8,3 +8,7 @@ type Error struct {
 func (e *Error) Error() string {
 	return e.Msg
 }
+
+type CtxID string
+
+const ID CtxID = "id"

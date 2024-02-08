@@ -158,6 +158,8 @@ func (s *service) CreateCar(ctx context.Context, car models.Car, imageFiles [][]
 		s.log.Error("failed to upload image to storage", slog.String("error", err.Error()))
 	}
 
+	s.log.Debug("saved images", slog.Int("failed to save images", errCounter), slog.String("id", ctx.Value("id").(string)))
+
 	if err := s.repo.CreateCar(ctx, car); err != nil {
 		return fmt.Errorf("repository error: %w", err)
 	}
@@ -249,6 +251,8 @@ func (s *service) CheckRent(ctx context.Context, rentUUID string) (res models.Re
 func (s *service) CreateRent(ctx context.Context, req models.CreateRentReq) (models.CreateRentRes, error) {
 	req.RentUUID = uuid.New().String()
 
+	s.log.Debug("creating new rent", slog.String("rent uuid", req.RentUUID))
+
 	available, err := s.repo.CheckIfCarAvailableInPeriod(ctx, req.CarUUID, req.RentStart, req.RentEnd)
 	if err != nil {
 		return models.CreateRentRes{}, err
@@ -268,6 +272,7 @@ func (s *service) CreateRent(ctx context.Context, req models.CreateRentReq) (mod
 
 		req.PhoneNumber = info.PhoneNumber
 		req.PassportNumber = info.PassportNumber
+		req.UserUUID = info.UUID
 	}
 
 	carPricePerDay, tx, err := s.repo.CreateRentTx(ctx, req)
@@ -280,6 +285,8 @@ func (s *service) CreateRent(ctx context.Context, req models.CreateRentReq) (mod
 		return models.CreateRentRes{}, fmt.Errorf("repository error: %w", err)
 	}
 
+	s.log.Debug("started create rent tx", slog.String("id", ctx.Value("id").(string)))
+
 	rentPrice := carPricePerDay * float32(req.RentEnd.Sub(req.RentStart).Hours()/24) * 100
 
 	chargeID, err := s.payment.Debit(req.PaymentSource, rentPrice)
@@ -287,12 +294,16 @@ func (s *service) CreateRent(ctx context.Context, req models.CreateRentReq) (mod
 		return models.CreateRentRes{}, fmt.Errorf("payment error: %w", err)
 	}
 
+	s.log.Debug("debited rent price", slog.Int("price", int(rentPrice)), slog.String("id", ctx.Value("id").(string)))
+
 	if err = s.repo.CreateCharge(ctx, models.Charge{ChargeUUID: chargeID, RentUUID: req.RentUUID, ChargeAmount: rentPrice}); err != nil {
 		if err = s.payment.Refund(chargeID, rentPrice); err != nil {
 			return models.CreateRentRes{}, fmt.Errorf("payment error: %w", err)
 		}
 		return models.CreateRentRes{}, fmt.Errorf("repository error: %w", err)
 	}
+
+	s.log.Debug("created charge", slog.String("id", ctx.Value("id").(string)))
 
 	if err = tx.Commit(); err != nil {
 		if err = s.payment.Refund(chargeID, rentPrice); err != nil {

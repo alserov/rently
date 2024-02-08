@@ -169,8 +169,8 @@ func (r *repository) UpdateCarPrice(ctx context.Context, req models.UpdateCarPri
 }
 
 func (r *repository) CreateRentTx(_ context.Context, req models.CreateRentReq) (float32, db.Tx, error) {
-	query := `INSERT INTO rents(rent_uuid,car_uuid, phone_number,passport_number,rent_start,rent_end)
-				VALUES ($1,$2,$3,$4,$5,$6) RETURNING (SELECT price_per_day FROM cars WHERE uuid = $2 LIMIT 1)`
+	query := `INSERT INTO rents(rent_uuid,car_uuid, user_uuid,phone_number,passport_number,rent_start,rent_end)
+				VALUES ($1,$2,$3,$4,$5,$6, $7) RETURNING (SELECT price_per_day FROM cars WHERE uuid = $2 LIMIT 1)`
 
 	tx, err := r.db.Beginx()
 	if err != nil {
@@ -181,7 +181,7 @@ func (r *repository) CreateRentTx(_ context.Context, req models.CreateRentReq) (
 	}
 
 	var carPricePerDay float32
-	err = tx.QueryRowx(query, req.RentUUID, req.CarUUID, req.PhoneNumber, req.PassportNumber, req.RentStart, req.RentEnd).Scan(&carPricePerDay)
+	err = tx.QueryRowx(query, req.RentUUID, req.CarUUID, req.UserUUID, req.PhoneNumber, req.PassportNumber, req.RentStart, req.RentEnd).Scan(&carPricePerDay)
 	if err != nil {
 		return 0, tx, &models.Error{
 			Status: http.StatusInternalServerError,

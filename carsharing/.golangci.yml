@@ -1,0 +1,6 @@
+linters:
+  enable:
+    - makezero
+    - errcheck
+    - gosimple
+    - govet

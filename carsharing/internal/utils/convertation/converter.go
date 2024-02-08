@@ -142,9 +142,12 @@ func (s *serverConverter) CheckRentToPb(res models.Rent) *carsharing.CheckRentRe
 	}
 }
 
+const UUID_IF_NOT_AUTHORIZED = "not authorized"
+
 func (s *serverConverter) CreateRentReqToService(req *carsharing.CreateRentReq) models.CreateRentReq {
 	return models.CreateRentReq{
 		CarUUID:        req.CarUUID,
+		UserUUID:       UUID_IF_NOT_AUTHORIZED,
 		PhoneNumber:    req.PhoneNumber,
 		PassportNumber: req.PassportNumber,
 		PaymentSource:  req.PaymentSource,

@@ -1,8 +1,10 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"github.com/alserov/rently/carsharing/internal/models"
+	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log/slog"
@@ -29,4 +31,8 @@ func (s *server) handleError(err error) error {
 
 	s.log.Error("unexpected error", slog.String("error", err.Error()))
 	return e
+}
+
+func (s *server) ctxWithID(ctx context.Context) context.Context {
+	return context.WithValue(ctx, models.ID, uuid.New().String())
 }
