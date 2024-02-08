@@ -11,6 +11,7 @@ const (
 	INFO  = "/info"
 	AUTH  = "/auth"
 	ADMIN = "/admin"
+	USER  = "/user"
 )
 
 func Setup(c *fiber.App, s *server.Server) {
@@ -30,4 +31,7 @@ func Setup(c *fiber.App, s *server.Server) {
 
 	rent := c.Group(RENT)
 	rent.Post("/carsharing/new", s.Carsharing.CreateRent)
+
+	user := c.Group(USER)
+	user.Patch("/reset-password", s.User.ResetPassword)
 }

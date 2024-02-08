@@ -15,6 +15,7 @@ import (
 type User interface {
 	Register(c *fiber.Ctx) error
 	Login(c *fiber.Ctx) error
+	ResetPassword(c *fiber.Ctx) error
 }
 
 func NewUser(p Params[usr.UserClient]) User {
@@ -36,6 +37,29 @@ type user struct {
 
 	readTimeout  time.Duration
 	writeTimeout time.Duration
+}
+
+func (u *user) ResetPassword(c *fiber.Ctx) error {
+	var req models.ResetPasswordReq
+	if err := decode(c.Request().Body(), &req, u.valid); err != nil {
+		handleResponseError(c.Status(http.StatusBadRequest).Send(marshal(models.Error{Err: err.Error()})))
+		return nil
+	}
+
+	req.Token = c.Cookies(middleware.AUTH_TOKEN)
+
+	ctx, cancel := context.WithTimeout(c.Context(), time.Duration(u.writeTimeout.Seconds()*0.80*float64(time.Second)))
+	defer cancel()
+
+	_, err := u.userClient.ResetPassword(ctx, u.convert.ResetPasswordReqToPb(req))
+	if err != nil {
+		handleServiceError(c.Response(), err)
+		return nil
+	}
+
+	c.Status(http.StatusOK)
+
+	return nil
 }
 
 func (u *user) Register(c *fiber.Ctx) error {

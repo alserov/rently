@@ -17,3 +17,9 @@ type LoginReq struct {
 	Password string `json:"password" validate:"required,max=40,min=7" errormgs:"invalid password: can not be less than 7 or greater than 40 characters"`
 	Email    string `json:"email" validate:"required,min=5" errormgs:"invalid email: can not be less than 5 characters"`
 }
+
+type ResetPasswordReq struct {
+	OldPassword string `json:"oldPassword" validate:"required,min=7,max=40"`
+	NewPassword string `json:"newPassword" validate:"required,min=7,max=40"`
+	Token       string
+}

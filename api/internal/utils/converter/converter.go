@@ -19,6 +19,7 @@ type Converter interface {
 	RegisterReqToPb(req models.RegisterReq) *user.RegisterReq
 	LoginReqToPb(req models.LoginReq) *user.LoginReq
 	CreateRentReqToPb(req models.CreateRentReq, token string) *carsharing.CreateRentReq
+	ResetPasswordReqToPb(req models.ResetPasswordReq) *user.ResetPasswordReq
 }
 
 func NewConverter() Converter {
@@ -26,6 +27,14 @@ func NewConverter() Converter {
 }
 
 type converter struct {
+}
+
+func (s *converter) ResetPasswordReqToPb(req models.ResetPasswordReq) *user.ResetPasswordReq {
+	return &user.ResetPasswordReq{
+		OldPassword: req.OldPassword,
+		NewPassword: req.NewPassword,
+		Token:       req.Token,
+	}
 }
 
 func (s *converter) CreateRentReqToPb(req models.CreateRentReq, token string) *carsharing.CreateRentReq {
