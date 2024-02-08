@@ -20,55 +20,35 @@ func NewEmailWorker(smtpPort int, smtpHost string, chReg <-chan amqp.Delivery) W
 			SmtpHost: smtpHost,
 			SmtpPort: smtpPort,
 		}),
-		registerCh: chReg,
+		msgs: chReg,
 	}
 }
 
 const (
-	registerWorkersAmount    = 2
-	readMessageWorkersAmount = 3
+	sendMailWorkersAmount = 3
 )
 
 type worker struct {
-	log        log.Logger
-	email      email.Emailer
-	registerCh <-chan amqp.Delivery
+	log   log.Logger
+	email email.Emailer
+	msgs  <-chan amqp.Delivery
 }
 
-const (
-	REGISTER_ID = "0"
-)
-
 func (w *worker) Start() {
-	w.log.Debug("starting email worker", slog.Int("registerWorkers", registerWorkersAmount), slog.Int("readMessageWorkers", readMessageWorkersAmount))
+	w.log.Debug("starting email worker", slog.Int("sendMailWorkers", sendMailWorkersAmount))
 
 	chErr := make(chan error, 1)
-	chRegister := make(chan amqp.Delivery, registerWorkersAmount)
 
-	for i := 0; i < readMessageWorkersAmount; i++ {
+	for i := 0; i < sendMailWorkersAmount; i++ {
 		go func() {
-			for msg := range w.registerCh {
-				switch msg.CorrelationId {
-				case REGISTER_ID:
-					w.log.Debug("received message", slog.Any("value", msg))
-					chRegister <- msg
-				default:
-					w.log.Warn("received message with unknown id", slog.String("id", msg.CorrelationId))
-				}
-			}
-		}()
-	}
-
-	for i := 0; i < registerWorkersAmount; i++ {
-		go func() {
-			for msg := range chRegister {
-				var email string
-				if err := json.Unmarshal(msg.Body, &email); err != nil {
+			for msg := range w.msgs {
+				var mail string
+				if err := json.Unmarshal(msg.Body, &mail); err != nil {
 					chErr <- fmt.Errorf("failed to unmarshal message: %w", err)
 				}
 
-				if err := w.register(email); err != nil {
-					chErr <- fmt.Errorf("failed to notify about registration: %w", err)
+				if err := w.email.Send(email.MessageTypeStringToInt(msg.CorrelationId), mail); err != nil {
+					chErr <- fmt.Errorf("failed to send email: %v", err)
 				}
 			}
 		}()
@@ -77,11 +57,4 @@ func (w *worker) Start() {
 	for e := range chErr {
 		w.log.Error("failed to send email", slog.String("error", e.Error()))
 	}
-}
-
-func (w *worker) register(email string) error {
-	if err := w.email.Registration(email); err != nil {
-		return fmt.Errorf("failed to send email: %v", err)
-	}
-	return nil
 }
