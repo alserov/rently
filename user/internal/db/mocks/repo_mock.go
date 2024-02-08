@@ -65,6 +65,21 @@ func (mr *MockRepositoryMockRecorder) GetInfoForRent(ctx, uuid interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInfoForRent", reflect.TypeOf((*MockRepository)(nil).GetInfoForRent), ctx, uuid)
 }
 
+// GetPassword mocks base method.
+func (m *MockRepository) GetPassword(ctx context.Context, uuid string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPassword", ctx, uuid)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPassword indicates an expected call of GetPassword.
+func (mr *MockRepositoryMockRecorder) GetPassword(ctx, uuid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPassword", reflect.TypeOf((*MockRepository)(nil).GetPassword), ctx, uuid)
+}
+
 // GetUserByUUID mocks base method.
 func (m *MockRepository) GetUserByUUID(ctx context.Context, uuids string) (db.EmailNotificationsInfo, error) {
 	m.ctrl.T.Helper()
@@ -122,6 +137,20 @@ func (m *MockRepository) Register(ctx context.Context, req models.RegisterReq) e
 func (mr *MockRepositoryMockRecorder) Register(ctx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockRepository)(nil).Register), ctx, req)
+}
+
+// ResetPassword mocks base method.
+func (m *MockRepository) ResetPassword(ctx context.Context, uuid, password string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResetPassword", ctx, uuid, password)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ResetPassword indicates an expected call of ResetPassword.
+func (mr *MockRepositoryMockRecorder) ResetPassword(ctx, uuid, password interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetPassword", reflect.TypeOf((*MockRepository)(nil).ResetPassword), ctx, uuid, password)
 }
 
 // SwitchNotificationsStatus mocks base method.

@@ -2,18 +2,29 @@ package workers
 
 import (
 	"context"
+	"fmt"
 	"github.com/alserov/rently/proto/gen/carsharing"
 	"github.com/alserov/rently/user/internal/config"
 	"github.com/alserov/rently/user/internal/db"
-	"github.com/alserov/rently/user/internal/log"
 	"github.com/alserov/rently/user/internal/utils/broker"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"log/slog"
 	"time"
 )
 
-func NewRentNotifier() Actor {
-	return &rentReminder{}
+type NotifierParams struct {
+	CarsharingClient carsharing.CarsClient
+	Repo             db.Repository
+	Producer         broker.Producer
+	Topics           config.Topics
+}
+
+func NewRentNotifier(p NotifierParams) Actor {
+	return &rentReminder{
+		carsharingClient: p.CarsharingClient,
+		repo:             p.Repo,
+		producer:         p.Producer,
+		topics:           p.Topics,
+	}
 }
 
 const (
@@ -21,14 +32,13 @@ const (
 )
 
 type rentReminder struct {
-	log              log.Logger
 	carsharingClient carsharing.CarsClient
 	repo             db.Repository
 	producer         broker.Producer
 	topics           config.Topics
 }
 
-func (r *rentReminder) Action() {
+func (r *rentReminder) Action() error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
@@ -41,14 +51,14 @@ func (r *rentReminder) Action() {
 		},
 	})
 	if err != nil {
-		r.log.Error("failed to get rents from carsharing service", slog.String("error", err.Error()))
+		return fmt.Errorf("failed to get rents from carsharing service: %w", err)
 	}
 
 	for _, rent := range rents.RentsInfo {
 		var user db.EmailNotificationsInfo
 		user, err = r.repo.GetUserByUUID(ctx, rent.UserUUID)
 		if err != nil {
-			r.log.Error("failed to get user from db", slog.String("error", err.Error()))
+			return fmt.Errorf("failed to get user from db: %w", err)
 		}
 
 		err = r.producer.Produce(ctx, ProducerMessage{
@@ -58,9 +68,11 @@ func (r *rentReminder) Action() {
 			RentEnd:   rent.RentEnd.AsTime(),
 		}, RENT_NOTIFIER_ID, r.topics.Email)
 		if err != nil {
-			r.log.Error("failed to produce notifying message", slog.String("error", err.Error()))
+			return fmt.Errorf("failed to produce notifying message: %w", err)
 		}
 	}
+
+	return nil
 }
 
 type ProducerMessage struct {

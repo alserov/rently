@@ -37,7 +37,10 @@ type Broker struct {
 }
 
 type Topics struct {
-	Email string `yaml:"email"`
+	Email   string `yaml:"email"`
+	Metrics struct {
+		Goroutines string `yaml:"goroutines"`
+	} `yaml:"metrics"`
 }
 
 func MustLoad() *Config {

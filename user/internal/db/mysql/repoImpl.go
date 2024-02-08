@@ -21,6 +21,47 @@ type repository struct {
 	db *sqlx.DB
 }
 
+func (r repository) GetPassword(ctx context.Context, uuid string) (string, error) {
+	query := `SELECT password FROM users WHERE uuid = ?`
+
+	var password string
+	err := r.db.QueryRowx(query, uuid).Scan(&password)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", &models.Error{
+			Msg:    fmt.Sprintf("user with uuid: %s not found", uuid),
+			Status: http.StatusNotFound,
+		}
+	}
+	if err != nil {
+		return "", &models.Error{
+			Msg:    fmt.Sprintf("failed to get password by uuid: %v: %v", uuid, err),
+			Status: http.StatusInternalServerError,
+		}
+	}
+
+	return password, nil
+}
+
+func (r repository) ResetPassword(ctx context.Context, uuid string, password string) error {
+	query := `UPDATE users SET password = ? WHERE uuid = ?`
+
+	err := r.db.QueryRowx(query, password, uuid).Err()
+	if errors.Is(err, sql.ErrNoRows) {
+		return &models.Error{
+			Msg:    fmt.Sprintf("user with uuid: %s not found", uuid),
+			Status: http.StatusNotFound,
+		}
+	}
+	if err != nil {
+		return &models.Error{
+			Msg:    fmt.Sprintf("failed to reset password by uuid: %v: %v", uuid, err),
+			Status: http.StatusInternalServerError,
+		}
+	}
+
+	return nil
+}
+
 func (r repository) CheckIfAuthorized(ctx context.Context, uuid string, role string) error {
 	query := `SELECT count(*) FROM users WHERE uuid = ?`
 

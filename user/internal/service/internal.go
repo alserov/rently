@@ -63,6 +63,16 @@ func hash(value string) (string, error) {
 	return string(b), nil
 }
 
+func compareHashAndPassword(hash, password string) error {
+	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)); err != nil {
+		return &models.Error{
+			Msg:    "invalid password",
+			Status: http.StatusBadRequest,
+		}
+	}
+	return nil
+}
+
 func encrypt(value string) string {
 	return base64.StdEncoding.EncodeToString([]byte(value))
 }

@@ -14,6 +14,7 @@ type Validator interface {
 	ValidateGetInfoReq(req *user.GetInfoReq) error
 	ValidateSwitchNotificationsStatusReq(req *user.SwitchNotificationsStatusReq) error
 	ValidateCheckIfAuthorizedReq(req *user.CheckIfAuthorizedReq) error
+	ValidateResetPasswordReq(req *user.ResetPasswordReq) error
 }
 
 func NewValidator() Validator {
@@ -40,9 +41,25 @@ type validator struct {
 	regExpPassport *regexp.Regexp
 }
 
+func (v validator) ValidateResetPasswordReq(req *user.ResetPasswordReq) error {
+	if err := validateToken(req.Token); err != nil {
+		return err
+	}
+
+	if err := validatePassword(req.OldPassword); err != nil {
+		return err
+	}
+
+	if err := validatePassword(req.NewPassword); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (v validator) ValidateGetInfoForRentReq(req *user.GetInfoForRentReq) error {
-	if req.Token == "" {
-		return status.Error(codes.InvalidArgument, ERR_EMPTY_TOKEN)
+	if err := validateToken(req.Token); err != nil {
+		return err
 	}
 
 	return nil
@@ -69,8 +86,8 @@ func (v validator) ValidateRegisterReq(req *user.RegisterReq) error {
 		return status.Error(codes.InvalidArgument, ERR_INVALID_PASSPORT_NUMBER)
 	}
 
-	if len(req.Password) < 7 {
-		return status.Error(codes.InvalidArgument, ERR_INVALID_PASSWORD)
+	if err := validatePassword(req.Password); err != nil {
+		return err
 	}
 
 	if len(req.Username) < 1 {
@@ -85,8 +102,8 @@ func (v validator) ValidateLoginReq(req *user.LoginReq) error {
 		return status.Error(codes.InvalidArgument, ERR_INVALID_EMAIL)
 	}
 
-	if len(req.Password) < 7 {
-		return status.Error(codes.InvalidArgument, ERR_INVALID_PASSWORD)
+	if err := validatePassword(req.Password); err != nil {
+		return err
 	}
 
 	return nil
@@ -105,5 +122,19 @@ func (v validator) ValidateCheckIfAuthorizedReq(req *user.CheckIfAuthorizedReq) 
 		return status.Error(codes.InvalidArgument, ERR_EMPTY_TOKEN)
 	}
 
+	return nil
+}
+
+func validatePassword(password string) error {
+	if len(password) < 7 {
+		return status.Error(codes.InvalidArgument, ERR_INVALID_PASSWORD)
+	}
+	return nil
+}
+
+func validateToken(token string) error {
+	if token == "" {
+		return status.Error(codes.InvalidArgument, ERR_EMPTY_TOKEN)
+	}
 	return nil
 }

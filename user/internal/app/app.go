@@ -43,8 +43,10 @@ func MustStart(cfg *config.Config) {
 		panic(err)
 	}
 
+	repo := mysql.NewRepository(mysql.MustConnect(cfg.DB.GetDSN()))
+
 	srvc := service.NewService(service.Params{
-		Repo:     mysql.NewRepository(mysql.MustConnect(cfg.DB.GetDSN())),
+		Repo:     repo,
 		Notifier: notifications.NewNotifier(rabbit.NewProducer(rbtCh), cfg.Broker.Rabbit.Topics),
 	})
 
@@ -54,7 +56,16 @@ func MustStart(cfg *config.Config) {
 		Service: srvc,
 	})
 
-	go workers.StartNotifier(time.NewTicker(time.Hour*24), workers.NewRentNotifier())
+	go workers.StartWithTicker(time.NewTicker(time.Hour*24), workers.NewRentNotifier(workers.NotifierParams{
+		CarsharingClient: nil,
+		Repo:             repo,
+		Producer:         rabbit.NewProducer(rbtCh),
+		Topics:           cfg.Broker.Rabbit.Topics,
+	}))
+	go workers.StartWithTicker(time.NewTicker(time.Hour), workers.NewStatMetricWorker(workers.StatMetricParams{
+		Producer: rabbit.NewProducer(rbtCh),
+		Topics:   cfg.Broker.Rabbit.Topics,
+	}))
 	l.Info("app is running")
 	run(gRPCServer, cfg.Port)
 	l.Info("app was stopped")

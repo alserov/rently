@@ -39,7 +39,7 @@ func TestService_Register(t *testing.T) {
 
 	//notif := notmock.NewMockNotifier(crtl)
 	//notif.EXPECT().
-	//	Registration(req.Email).
+	//	Registration(gomock.Any(), req.Email).
 	//	Return(nil).
 	//	Times(1)
 

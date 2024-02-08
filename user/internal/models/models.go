@@ -39,3 +39,9 @@ type InfoForRentRes struct {
 	PassportNumber string `db:"passport_number"`
 	PhoneNumber    string `db:"phone_number"`
 }
+
+type ResetPasswordReq struct {
+	OldPassword string
+	NewPassword string
+	Token       string
+}

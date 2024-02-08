@@ -8,7 +8,7 @@ import (
 
 type Notifier interface {
 	Registration(ctx context.Context, email string) error
-	Login(email string) error
+	Login(ctx context.Context, email string) error
 }
 
 func NewNotifier(producer broker.Producer, topics config.Topics) Notifier {
@@ -17,6 +17,7 @@ func NewNotifier(producer broker.Producer, topics config.Topics) Notifier {
 
 const (
 	REGISTRATION_ID = "0"
+	LOGIN_ID        = "1"
 )
 
 type notifier struct {
@@ -25,9 +26,8 @@ type notifier struct {
 	topics config.Topics
 }
 
-func (n notifier) Login(email string) error {
-	//TODO implement me
-	panic("implement me")
+func (n notifier) Login(ctx context.Context, email string) error {
+	return n.producer.Produce(ctx, email, LOGIN_ID, n.topics.Email)
 }
 
 func (n notifier) Registration(ctx context.Context, email string) error {

@@ -9,7 +9,7 @@ import (
 	"github.com/alserov/rently/user/internal/models"
 	"github.com/alserov/rently/user/internal/notifications"
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
+	"log/slog"
 	"net/http"
 )
 
@@ -20,6 +20,7 @@ type Service interface {
 	GetRentInfo(ctx context.Context, token string) (models.InfoForRentRes, error)
 	SwitchNotificationsStatus(ctx context.Context, uuid string) error
 	CheckIfAuthorized(ctx context.Context, token string) (string, error)
+	ResetPassword(ctx context.Context, req models.ResetPasswordReq) error
 }
 
 type Params struct {
@@ -36,6 +37,11 @@ func NewService(p Params) Service {
 	}
 }
 
+const (
+	ROLE_USER  = "user"
+	ROLE_ADMIN = "admin"
+)
+
 type service struct {
 	log log.Logger
 
@@ -44,10 +50,32 @@ type service struct {
 	repo db.Repository
 }
 
-const (
-	ROLE_USER  = "user"
-	ROLE_ADMIN = "admin"
-)
+func (s *service) ResetPassword(ctx context.Context, req models.ResetPasswordReq) error {
+	uuid, _, err := parseTokenClaims(req.Token)
+	if err != nil {
+		return fmt.Errorf("failed to parse token: %w", err)
+	}
+
+	passwd, err := s.repo.GetPassword(ctx, uuid)
+	if err != nil {
+		return err
+	}
+
+	if err = compareHashAndPassword(passwd, req.OldPassword); err != nil {
+		return err
+	}
+
+	hashedPassword, err := hash(req.NewPassword)
+	if err != nil {
+		return err
+	}
+
+	if err = s.repo.ResetPassword(ctx, uuid, hashedPassword); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func (s *service) CheckIfAuthorized(ctx context.Context, token string) (string, error) {
 	uuid, role, err := parseTokenClaims(token)
@@ -77,10 +105,14 @@ func (s *service) GetRentInfo(ctx context.Context, token string) (models.InfoFor
 		return models.InfoForRentRes{}, err
 	}
 
+	s.log.Debug("parsed token", slog.String("uuid", uuid))
+
 	info, err := s.repo.GetInfoForRent(ctx, uuid)
 	if err != nil {
 		return models.InfoForRentRes{}, err
 	}
+
+	s.log.Debug("got info for rent", slog.Any("info", info))
 
 	passportNumber, err := decrypt(info.PassportNumber)
 	if err != nil {
@@ -112,12 +144,8 @@ func (s *service) Login(ctx context.Context, req models.LoginReq) (string, error
 		return "", err
 	}
 
-	if err = bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(req.Password)); err != nil {
-		fmt.Println(err)
-		return "", &models.Error{
-			Msg:    "invalid password",
-			Status: http.StatusBadRequest,
-		}
+	if err = compareHashAndPassword(userData.Password, req.Password); err != nil {
+		return "", err
 	}
 
 	token, err := newToken(userData.UUID, userData.Role)
@@ -125,9 +153,9 @@ func (s *service) Login(ctx context.Context, req models.LoginReq) (string, error
 		return "", fmt.Errorf("failed to generate new token: %w", err)
 	}
 
-	//if err = s.notifier.Login(userData.Email); err != nil {
-	//	return "", fmt.Errorf("failed to send login notification: %w", err)
-	//}
+	if err = s.notifier.Login(ctx, userData.Email); err != nil {
+		return "", fmt.Errorf("failed to send login notification: %w", err)
+	}
 
 	return token, nil
 }

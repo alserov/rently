@@ -13,6 +13,8 @@ type Repository interface {
 	SwitchNotificationsStatus(ctx context.Context, uuid string) error
 	GetUserByUUID(ctx context.Context, uuids string) (EmailNotificationsInfo, error)
 	CheckIfAuthorized(ctx context.Context, uuid string, role string) error
+	ResetPassword(ctx context.Context, uuid string, password string) error
+	GetPassword(ctx context.Context, uuid string) (string, error)
 }
 
 type LoginInfo struct {

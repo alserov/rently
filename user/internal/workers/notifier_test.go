@@ -10,13 +10,14 @@ type testActor struct {
 	counter int
 }
 
-func (t *testActor) Notify() {
+func (t *testActor) Action() error {
 	t.counter++
+	return nil
 }
 
 func TestStartNotifier(t *testing.T) {
 	ta := testActor{}
-	go StartNotifier(time.NewTicker(time.Millisecond*100), &ta)
+	go StartWithTicker(time.NewTicker(time.Millisecond*100), &ta)
 
 	start := time.Now()
 	time.Sleep(time.Second + time.Millisecond*30)

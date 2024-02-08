@@ -13,6 +13,7 @@ type Converter interface {
 type ToService interface {
 	RegisterReqToService(req *user.RegisterReq) models.RegisterReq
 	LoginReqToService(req *user.LoginReq) models.LoginReq
+	ResetPasswordReqToService(req *user.ResetPasswordReq) models.ResetPasswordReq
 }
 
 type ToPb interface {
@@ -28,6 +29,14 @@ func NewConverter() Converter {
 }
 
 type converter struct {
+}
+
+func (c converter) ResetPasswordReqToService(req *user.ResetPasswordReq) models.ResetPasswordReq {
+	return models.ResetPasswordReq{
+		NewPassword: req.NewPassword,
+		OldPassword: req.OldPassword,
+		Token:       req.Token,
+	}
 }
 
 func (c converter) LoginResToPb(token string) *user.LoginRes {

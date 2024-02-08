@@ -40,6 +40,18 @@ type server struct {
 	convert convertation.Converter
 }
 
+func (s *server) ResetPassword(ctx context.Context, req *user.ResetPasswordReq) (*emptypb.Empty, error) {
+	if err := s.valid.ValidateResetPasswordReq(req); err != nil {
+		return nil, err
+	}
+
+	if err := s.service.ResetPassword(ctx, s.convert.ResetPasswordReqToService(req)); err != nil {
+		return nil, s.handleError(err)
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
 func (s *server) CheckIfAuthorized(ctx context.Context, req *user.CheckIfAuthorizedReq) (*user.CheckIfAuthorizedRes, error) {
 	if err := s.valid.ValidateCheckIfAuthorizedReq(req); err != nil {
 		return nil, err
