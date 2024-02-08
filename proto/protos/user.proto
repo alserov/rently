@@ -73,4 +73,5 @@ message SwitchNotificationsStatusReq {
 message GetInfoForRentRes {
   string PassportNumber = 1;
   string PhoneNumber = 2;
+  string UUID = 3;
 }
