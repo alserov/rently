@@ -38,19 +38,18 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // CancelRentTx mocks base method.
-func (m *MockRepository) CancelRentTx(ctx context.Context, rentUUID string) (models.CancelRentInfo, db.Tx, error) {
+func (m *MockRepository) CancelRentTx(ctx context.Context, tx db.SqlTx, rentUUID string) (models.CancelRentInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CancelRentTx", ctx, rentUUID)
+	ret := m.ctrl.Call(m, "CancelRentTx", ctx, tx, rentUUID)
 	ret0, _ := ret[0].(models.CancelRentInfo)
-	ret1, _ := ret[1].(db.Tx)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CancelRentTx indicates an expected call of CancelRentTx.
-func (mr *MockRepositoryMockRecorder) CancelRentTx(ctx, rentUUID interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) CancelRentTx(ctx, tx, rentUUID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelRentTx", reflect.TypeOf((*MockRepository)(nil).CancelRentTx), ctx, rentUUID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelRentTx", reflect.TypeOf((*MockRepository)(nil).CancelRentTx), ctx, tx, rentUUID)
 }
 
 // CheckIfCarAvailableInPeriod mocks base method.
@@ -97,34 +96,33 @@ func (mr *MockRepositoryMockRecorder) CreateCar(ctx, car interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCar", reflect.TypeOf((*MockRepository)(nil).CreateCar), ctx, car)
 }
 
-// CreateCharge mocks base method.
-func (m *MockRepository) CreateCharge(ctx context.Context, req models.Charge) error {
+// CreateChargeTx mocks base method.
+func (m *MockRepository) CreateChargeTx(ctx context.Context, tx db.SqlTx, req models.Charge) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateCharge", ctx, req)
+	ret := m.ctrl.Call(m, "CreateChargeTx", ctx, tx, req)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// CreateCharge indicates an expected call of CreateCharge.
-func (mr *MockRepositoryMockRecorder) CreateCharge(ctx, req interface{}) *gomock.Call {
+// CreateChargeTx indicates an expected call of CreateChargeTx.
+func (mr *MockRepositoryMockRecorder) CreateChargeTx(ctx, tx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCharge", reflect.TypeOf((*MockRepository)(nil).CreateCharge), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateChargeTx", reflect.TypeOf((*MockRepository)(nil).CreateChargeTx), ctx, tx, req)
 }
 
 // CreateRentTx mocks base method.
-func (m *MockRepository) CreateRentTx(ctx context.Context, req models.CreateRentReq) (float32, db.Tx, error) {
+func (m *MockRepository) CreateRentTx(ctx context.Context, tx db.SqlTx, req models.CreateRentReq) (float32, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateRentTx", ctx, req)
+	ret := m.ctrl.Call(m, "CreateRentTx", ctx, tx, req)
 	ret0, _ := ret[0].(float32)
-	ret1, _ := ret[1].(db.Tx)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CreateRentTx indicates an expected call of CreateRentTx.
-func (mr *MockRepositoryMockRecorder) CreateRentTx(ctx, req interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) CreateRentTx(ctx, tx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRentTx", reflect.TypeOf((*MockRepository)(nil).CreateRentTx), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRentTx", reflect.TypeOf((*MockRepository)(nil).CreateRentTx), ctx, tx, req)
 }
 
 // DeleteCar mocks base method.
@@ -199,6 +197,35 @@ func (m *MockRepository) GetRentsWhatStartsOnDate(ctx context.Context, date time
 func (mr *MockRepositoryMockRecorder) GetRentsWhatStartsOnDate(ctx, date interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRentsWhatStartsOnDate", reflect.TypeOf((*MockRepository)(nil).GetRentsWhatStartsOnDate), ctx, date)
+}
+
+// RefundChargeTx mocks base method.
+func (m *MockRepository) RefundChargeTx(ctx context.Context, tx db.SqlTx, chargeUUID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RefundChargeTx", ctx, tx, chargeUUID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RefundChargeTx indicates an expected call of RefundChargeTx.
+func (mr *MockRepositoryMockRecorder) RefundChargeTx(ctx, tx, chargeUUID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefundChargeTx", reflect.TypeOf((*MockRepository)(nil).RefundChargeTx), ctx, tx, chargeUUID)
+}
+
+// StartTx mocks base method.
+func (m *MockRepository) StartTx(ctx context.Context) (db.SqlTx, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StartTx", ctx)
+	ret0, _ := ret[0].(db.SqlTx)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// StartTx indicates an expected call of StartTx.
+func (mr *MockRepositoryMockRecorder) StartTx(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartTx", reflect.TypeOf((*MockRepository)(nil).StartTx), ctx)
 }
 
 // UpdateCarPrice mocks base method.
@@ -372,19 +399,18 @@ func (m *MockRentRepository) EXPECT() *MockRentRepositoryMockRecorder {
 }
 
 // CancelRentTx mocks base method.
-func (m *MockRentRepository) CancelRentTx(ctx context.Context, rentUUID string) (models.CancelRentInfo, db.Tx, error) {
+func (m *MockRentRepository) CancelRentTx(ctx context.Context, tx db.SqlTx, rentUUID string) (models.CancelRentInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CancelRentTx", ctx, rentUUID)
+	ret := m.ctrl.Call(m, "CancelRentTx", ctx, tx, rentUUID)
 	ret0, _ := ret[0].(models.CancelRentInfo)
-	ret1, _ := ret[1].(db.Tx)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CancelRentTx indicates an expected call of CancelRentTx.
-func (mr *MockRentRepositoryMockRecorder) CancelRentTx(ctx, rentUUID interface{}) *gomock.Call {
+func (mr *MockRentRepositoryMockRecorder) CancelRentTx(ctx, tx, rentUUID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelRentTx", reflect.TypeOf((*MockRentRepository)(nil).CancelRentTx), ctx, rentUUID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelRentTx", reflect.TypeOf((*MockRentRepository)(nil).CancelRentTx), ctx, tx, rentUUID)
 }
 
 // CheckIfCarAvailableInPeriod mocks base method.
@@ -417,34 +443,33 @@ func (mr *MockRentRepositoryMockRecorder) CheckRent(ctx, rentUUID interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckRent", reflect.TypeOf((*MockRentRepository)(nil).CheckRent), ctx, rentUUID)
 }
 
-// CreateCharge mocks base method.
-func (m *MockRentRepository) CreateCharge(ctx context.Context, req models.Charge) error {
+// CreateChargeTx mocks base method.
+func (m *MockRentRepository) CreateChargeTx(ctx context.Context, tx db.SqlTx, req models.Charge) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateCharge", ctx, req)
+	ret := m.ctrl.Call(m, "CreateChargeTx", ctx, tx, req)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// CreateCharge indicates an expected call of CreateCharge.
-func (mr *MockRentRepositoryMockRecorder) CreateCharge(ctx, req interface{}) *gomock.Call {
+// CreateChargeTx indicates an expected call of CreateChargeTx.
+func (mr *MockRentRepositoryMockRecorder) CreateChargeTx(ctx, tx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCharge", reflect.TypeOf((*MockRentRepository)(nil).CreateCharge), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateChargeTx", reflect.TypeOf((*MockRentRepository)(nil).CreateChargeTx), ctx, tx, req)
 }
 
 // CreateRentTx mocks base method.
-func (m *MockRentRepository) CreateRentTx(ctx context.Context, req models.CreateRentReq) (float32, db.Tx, error) {
+func (m *MockRentRepository) CreateRentTx(ctx context.Context, tx db.SqlTx, req models.CreateRentReq) (float32, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateRentTx", ctx, req)
+	ret := m.ctrl.Call(m, "CreateRentTx", ctx, tx, req)
 	ret0, _ := ret[0].(float32)
-	ret1, _ := ret[1].(db.Tx)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CreateRentTx indicates an expected call of CreateRentTx.
-func (mr *MockRentRepositoryMockRecorder) CreateRentTx(ctx, req interface{}) *gomock.Call {
+func (mr *MockRentRepositoryMockRecorder) CreateRentTx(ctx, tx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRentTx", reflect.TypeOf((*MockRentRepository)(nil).CreateRentTx), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRentTx", reflect.TypeOf((*MockRentRepository)(nil).CreateRentTx), ctx, tx, req)
 }
 
 // GetRentsWhatStartsOnDate mocks base method.
@@ -460,6 +485,35 @@ func (m *MockRentRepository) GetRentsWhatStartsOnDate(ctx context.Context, date 
 func (mr *MockRentRepositoryMockRecorder) GetRentsWhatStartsOnDate(ctx, date interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRentsWhatStartsOnDate", reflect.TypeOf((*MockRentRepository)(nil).GetRentsWhatStartsOnDate), ctx, date)
+}
+
+// RefundChargeTx mocks base method.
+func (m *MockRentRepository) RefundChargeTx(ctx context.Context, tx db.SqlTx, chargeUUID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RefundChargeTx", ctx, tx, chargeUUID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RefundChargeTx indicates an expected call of RefundChargeTx.
+func (mr *MockRentRepositoryMockRecorder) RefundChargeTx(ctx, tx, chargeUUID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefundChargeTx", reflect.TypeOf((*MockRentRepository)(nil).RefundChargeTx), ctx, tx, chargeUUID)
+}
+
+// StartTx mocks base method.
+func (m *MockRentRepository) StartTx(ctx context.Context) (db.SqlTx, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StartTx", ctx)
+	ret0, _ := ret[0].(db.SqlTx)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// StartTx indicates an expected call of StartTx.
+func (mr *MockRentRepositoryMockRecorder) StartTx(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartTx", reflect.TypeOf((*MockRentRepository)(nil).StartTx), ctx)
 }
 
 // MockTx is a mock of Tx interface.
@@ -485,30 +539,75 @@ func (m *MockTx) EXPECT() *MockTxMockRecorder {
 	return m.recorder
 }
 
-// Commit mocks base method.
-func (m *MockTx) Commit() error {
+// CancelRentTx mocks base method.
+func (m *MockTx) CancelRentTx(ctx context.Context, tx db.SqlTx, rentUUID string) (models.CancelRentInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Commit")
+	ret := m.ctrl.Call(m, "CancelRentTx", ctx, tx, rentUUID)
+	ret0, _ := ret[0].(models.CancelRentInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CancelRentTx indicates an expected call of CancelRentTx.
+func (mr *MockTxMockRecorder) CancelRentTx(ctx, tx, rentUUID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelRentTx", reflect.TypeOf((*MockTx)(nil).CancelRentTx), ctx, tx, rentUUID)
+}
+
+// CreateChargeTx mocks base method.
+func (m *MockTx) CreateChargeTx(ctx context.Context, tx db.SqlTx, req models.Charge) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateChargeTx", ctx, tx, req)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Commit indicates an expected call of Commit.
-func (mr *MockTxMockRecorder) Commit() *gomock.Call {
+// CreateChargeTx indicates an expected call of CreateChargeTx.
+func (mr *MockTxMockRecorder) CreateChargeTx(ctx, tx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Commit", reflect.TypeOf((*MockTx)(nil).Commit))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateChargeTx", reflect.TypeOf((*MockTx)(nil).CreateChargeTx), ctx, tx, req)
 }
 
-// Rollback mocks base method.
-func (m *MockTx) Rollback() error {
+// CreateRentTx mocks base method.
+func (m *MockTx) CreateRentTx(ctx context.Context, tx db.SqlTx, req models.CreateRentReq) (float32, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Rollback")
+	ret := m.ctrl.Call(m, "CreateRentTx", ctx, tx, req)
+	ret0, _ := ret[0].(float32)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateRentTx indicates an expected call of CreateRentTx.
+func (mr *MockTxMockRecorder) CreateRentTx(ctx, tx, req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRentTx", reflect.TypeOf((*MockTx)(nil).CreateRentTx), ctx, tx, req)
+}
+
+// RefundChargeTx mocks base method.
+func (m *MockTx) RefundChargeTx(ctx context.Context, tx db.SqlTx, chargeUUID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RefundChargeTx", ctx, tx, chargeUUID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Rollback indicates an expected call of Rollback.
-func (mr *MockTxMockRecorder) Rollback() *gomock.Call {
+// RefundChargeTx indicates an expected call of RefundChargeTx.
+func (mr *MockTxMockRecorder) RefundChargeTx(ctx, tx, chargeUUID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Rollback", reflect.TypeOf((*MockTx)(nil).Rollback))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefundChargeTx", reflect.TypeOf((*MockTx)(nil).RefundChargeTx), ctx, tx, chargeUUID)
+}
+
+// StartTx mocks base method.
+func (m *MockTx) StartTx(ctx context.Context) (db.SqlTx, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StartTx", ctx)
+	ret0, _ := ret[0].(db.SqlTx)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// StartTx indicates an expected call of StartTx.
+func (mr *MockTxMockRecorder) StartTx(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartTx", reflect.TypeOf((*MockTx)(nil).StartTx), ctx)
 }

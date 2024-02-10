@@ -26,6 +26,6 @@ func TestPayer(t *testing.T) {
 	require.NotEmpty(t, chargeID)
 
 	// refund
-	err = p.Refund(chargeID, amount)
+	err = p.Refund(chargeID)
 	require.NoError(t, err)
 }

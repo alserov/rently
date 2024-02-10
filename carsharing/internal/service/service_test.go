@@ -75,7 +75,7 @@ func TestService_CreateRent(t *testing.T) {
 	defer ctrl.Finish()
 
 	repo := repomock.NewMockRepository(ctrl)
-	repo.EXPECT().CreateRentTx(gomock.Eq(context.Background()), gomock.Any()).Return(100, nil, nil).Times(1)
+	repo.EXPECT().CreateRentTx(gomock.Eq(context.Background()), gomock.Any(), gomock.Any()).Return(100, nil, nil).Times(1)
 
 	s := NewService(Params{})
 
