@@ -11,7 +11,7 @@ import (
 )
 
 type Payer interface {
-	Refund(chargeID string, amount float32) error
+	Refund(chargeID string) error
 	Debit(source string, amount float32) (string, error)
 }
 
@@ -30,9 +30,8 @@ type Service interface {
 	Period() time.Duration
 }
 
-func (p payer) Refund(chargeID string, amount float32) error {
+func (p payer) Refund(chargeID string) error {
 	params := &stripe.RefundParams{
-		Amount:               stripe.Int64(int64(amount)),
 		Charge:               stripe.String(chargeID),
 		RefundApplicationFee: stripe.Bool(false),
 	}

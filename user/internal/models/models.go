@@ -38,6 +38,7 @@ type UserInfoRes struct {
 type InfoForRentRes struct {
 	PassportNumber string `db:"passport_number"`
 	PhoneNumber    string `db:"phone_number"`
+	UUID           string
 }
 
 type ResetPasswordReq struct {

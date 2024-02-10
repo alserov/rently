@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"github.com/alserov/rently/carsharing/internal/models"
+	"github.com/jmoiron/sqlx"
 	"time"
 )
 
@@ -26,14 +27,20 @@ type CarRepository interface {
 
 type RentRepository interface {
 	CheckIfCarAvailableInPeriod(ctx context.Context, carUUID string, from, to time.Time) (bool, error)
-	CreateRentTx(ctx context.Context, req models.CreateRentReq) (price float32, tx Tx, err error)
-	CancelRentTx(ctx context.Context, rentUUID string) (rentInfo models.CancelRentInfo, tx Tx, err error)
 	CheckRent(ctx context.Context, rentUUID string) (rent models.Rent, err error)
-	CreateCharge(ctx context.Context, req models.Charge) error
 	GetRentsWhatStartsOnDate(ctx context.Context, date time.Time) ([]models.RentStartData, error)
+	Tx
 }
 
 type Tx interface {
-	Commit() error
-	Rollback() error
+	StartTx(ctx context.Context) (SqlTx, error)
+
+	CreateRentTx(ctx context.Context, tx SqlTx, req models.CreateRentReq) (price float32, err error)
+	CancelRentTx(ctx context.Context, tx SqlTx, rentUUID string) (rentInfo models.CancelRentInfo, err error)
+	CreateChargeTx(ctx context.Context, tx SqlTx, req models.Charge) error
+	RefundChargeTx(ctx context.Context, tx SqlTx, chargeUUID string) error
+}
+
+type SqlTx struct {
+	*sqlx.Tx
 }

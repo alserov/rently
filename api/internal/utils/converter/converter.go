@@ -20,6 +20,8 @@ type Converter interface {
 	LoginReqToPb(req models.LoginReq) *user.LoginReq
 	CreateRentReqToPb(req models.CreateRentReq, token string) *carsharing.CreateRentReq
 	ResetPasswordReqToPb(req models.ResetPasswordReq) *user.ResetPasswordReq
+	CancelRentToPb(rentUUID string) *carsharing.CancelRentReq
+	CheckRentToPb(rentUUID string) *carsharing.CheckRentReq
 }
 
 func NewConverter() Converter {
@@ -27,6 +29,18 @@ func NewConverter() Converter {
 }
 
 type converter struct {
+}
+
+func (s *converter) CheckRentToPb(rentUUID string) *carsharing.CheckRentReq {
+	return &carsharing.CheckRentReq{
+		RentUUID: rentUUID,
+	}
+}
+
+func (s *converter) CancelRentToPb(rentUUID string) *carsharing.CancelRentReq {
+	return &carsharing.CancelRentReq{
+		RentUUID: rentUUID,
+	}
 }
 
 func (s *converter) ResetPasswordReqToPb(req models.ResetPasswordReq) *user.ResetPasswordReq {

@@ -140,7 +140,7 @@ func (s *server) UpdateCarPrice(ctx context.Context, req *carsharing.UpdateCarPr
 func (s *server) CreateRent(ctx context.Context, req *carsharing.CreateRentReq) (*carsharing.CreateRentRes, error) {
 	ctx = s.ctxWithID(ctx)
 
-	s.log.Debug("received create rent request", slog.String("id", ctx.Value("id").(string)))
+	s.log.Debug("received create rent request", slog.String("id", ctx.Value(models.ID).(string)))
 
 	if err := s.valid.ValidateCreateRentReq(req); err != nil {
 		return nil, err

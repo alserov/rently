@@ -31,6 +31,8 @@ func Setup(c *fiber.App, s *server.Server) {
 
 	rent := c.Group(RENT)
 	rent.Post("/carsharing/new", s.Carsharing.CreateRent)
+	rent.Delete("/carsharing/cancel/:uuid", s.Carsharing.CancelRent)
+	rent.Get("/carsharing/info/:uuid", s.Carsharing.CheckRent)
 
 	user := c.Group(USER)
 	user.Patch("/reset-password", s.User.ResetPassword)

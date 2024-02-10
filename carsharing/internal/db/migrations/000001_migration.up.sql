@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS rents
 (
-    rent_uuid       varchar(40) NOT NULL,
+    uuid            varchar(40) NOT NULL,
     car_uuid        varchar(40) NOT NULL,
     user_uuid       varchar(40) DEFAULT 'NOT AUTHORIZED',
     phone_number    varchar(25) NOT NULL,
@@ -11,9 +11,10 @@ CREATE TABLE IF NOT EXISTS rents
 
 CREATE TABLE IF NOT EXISTS charges
 (
+    uuid          text                              NOT NULL,
     rent_uuid     varchar(40)                       NOT NULL,
-    charge_uuid   text                              NOT NULL,
-    charge_amount float CHECK ( charge_amount > 0 ) NOT NULL
+    charge_amount float CHECK ( charge_amount > 0 ) NOT NULL,
+    status        varchar(10)
 );
 
 CREATE TABLE IF NOT EXISTS cars

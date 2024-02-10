@@ -55,6 +55,7 @@ func (c converter) InfoForRentResToPb(res models.InfoForRentRes) *user.GetInfoFo
 	return &user.GetInfoForRentRes{
 		PhoneNumber:    res.PhoneNumber,
 		PassportNumber: res.PassportNumber,
+		UUID:           res.UUID,
 	}
 }
 

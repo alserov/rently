@@ -12,6 +12,8 @@ github.com/alserov/rently/proto v0.0.0-20240205142442-59dd5af7b2d2 h1:GB0UJG+4Dc
 github.com/alserov/rently/proto v0.0.0-20240205142442-59dd5af7b2d2/go.mod h1:PH/CdDFywo/Fevnt5HfrfP81nNUttnqTAw2oimxUaDY=
 github.com/alserov/rently/proto v0.0.0-20240207173149-1a2224b05837 h1:PoH6eQeBL6bouxNViDD+HRG43eASNDtSPRBOUTySQoY=
 github.com/alserov/rently/proto v0.0.0-20240207173149-1a2224b05837/go.mod h1:PH/CdDFywo/Fevnt5HfrfP81nNUttnqTAw2oimxUaDY=
+github.com/alserov/rently/proto v0.0.0-20240208180750-b9409a81aa36 h1:DHwctxG7NxxegjPI1jOjWRG8xXeVoaWH3WcKVhFaUB0=
+github.com/alserov/rently/proto v0.0.0-20240208180750-b9409a81aa36/go.mod h1:PH/CdDFywo/Fevnt5HfrfP81nNUttnqTAw2oimxUaDY=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=

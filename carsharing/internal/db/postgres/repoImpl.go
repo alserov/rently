@@ -28,6 +28,28 @@ type repository struct {
 	db *sqlx.DB
 }
 
+func (r *repository) StartTx(ctx context.Context) (db.SqlTx, error) {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return db.SqlTx{}, err
+	}
+
+	return db.SqlTx{Tx: tx}, nil
+}
+
+func (r *repository) RefundChargeTx(ctx context.Context, tx db.SqlTx, chargeUUID string) error {
+	query := `UPDATE charges SET status = $1 WHERE uuid = $2`
+
+	if err := tx.QueryRowx(query, CHARGE_STATUS_REFUNDED, chargeUUID).Err(); err != nil {
+		return &models.Error{
+			Msg:    fmt.Sprintf("failed to switch charge status to '%s': %v", CHARGE_STATUS_REFUNDED, err),
+			Status: http.StatusInternalServerError,
+		}
+	}
+
+	return nil
+}
+
 func (r *repository) CheckIfCarAvailableInPeriod(_ context.Context, carUUID string, from, to time.Time) (bool, error) {
 	query := `SELECT count(*) FROM rents WHERE car_uuid = $1 AND $2 BETWEEN rent_start AND rent_end OR $3 BETWEEN rent_start AND rent_end`
 
@@ -68,10 +90,15 @@ func (r *repository) GetRentsWhatStartsOnDate(ctx context.Context, tomorrowDate 
 	return rentData, nil
 }
 
-func (r *repository) CreateCharge(ctx context.Context, req models.Charge) error {
-	query := `INSERT INTO charges (rent_uuid,charge_uuid,charge_amount) VALUES ($1,$2,$3)`
+const (
+	CHARGE_STATUS_SUCCEEDED = "succeeded"
+	CHARGE_STATUS_REFUNDED  = "refunded"
+)
 
-	if err := r.db.QueryRowx(query, req.RentUUID, req.ChargeUUID, req.ChargeAmount).Err(); err != nil {
+func (r *repository) CreateChargeTx(ctx context.Context, tx db.SqlTx, req models.Charge) error {
+	query := `INSERT INTO charges (uuid, rent_uuid,charge_amount, status) VALUES ($1,$2,$3, $4)`
+
+	if err := tx.QueryRowx(query, req.ChargeUUID, req.RentUUID, req.ChargeAmount, CHARGE_STATUS_SUCCEEDED).Err(); err != nil {
 		return &models.Error{
 			Msg:    fmt.Sprintf("failed to insert charge: %v", err),
 			Status: http.StatusInternalServerError,
@@ -81,25 +108,20 @@ func (r *repository) CreateCharge(ctx context.Context, req models.Charge) error 
 	return nil
 }
 
-func (r *repository) CancelRentTx(ctx context.Context, rentUUID string) (models.CancelRentInfo, db.Tx, error) {
-	query := `DELETE FROM rents WHERE rent_uuid = $1 LIMIT 1 RETURNING rent_price, charge_id`
+func (r *repository) CancelRentTx(ctx context.Context, tx db.SqlTx, rentUUID string) (models.CancelRentInfo, error) {
+	query := `DELETE FROM rents WHERE uuid = $1 RETURNING (SELECT uuid FROM charges WHERE rent_uuid = $1)`
 
-	tx, err := r.db.Beginx()
-	if err != nil {
-		return models.CancelRentInfo{}, nil, &models.Error{
-			Msg:    fmt.Sprintf("failed to start tx: %v", err),
+	row := tx.QueryRowx(query, rentUUID)
+
+	var rentInfo models.CancelRentInfo
+	if err := row.StructScan(&rentInfo); err != nil {
+		return models.CancelRentInfo{}, &models.Error{
+			Msg:    fmt.Sprintf("failed to cancel rent: %v", err),
 			Status: http.StatusInternalServerError,
 		}
 	}
 
-	row := r.db.QueryRowx(query, rentUUID)
-
-	var rentInfo models.CancelRentInfo
-	if err = row.Scan(&rentInfo); err != nil {
-		return models.CancelRentInfo{}, tx, status.Error(codes.Internal, fmt.Sprintf("failed to cancel rent: %v", err))
-	}
-
-	return rentInfo, tx, nil
+	return rentInfo, nil
 }
 
 func (r *repository) CreateCar(ctx context.Context, car models.Car) error {
@@ -168,28 +190,21 @@ func (r *repository) UpdateCarPrice(ctx context.Context, req models.UpdateCarPri
 	return nil
 }
 
-func (r *repository) CreateRentTx(_ context.Context, req models.CreateRentReq) (float32, db.Tx, error) {
-	query := `INSERT INTO rents(rent_uuid,car_uuid, user_uuid,phone_number,passport_number,rent_start,rent_end)
-				VALUES ($1,$2,$3,$4,$5,$6, $7) RETURNING (SELECT price_per_day FROM cars WHERE uuid = $2 LIMIT 1)`
-
-	tx, err := r.db.Beginx()
-	if err != nil {
-		return 0, tx, &models.Error{
-			Msg:    fmt.Sprintf("failed to start tx: %v", err),
-			Status: http.StatusInternalServerError,
-		}
-	}
+func (r *repository) CreateRentTx(_ context.Context, tx db.SqlTx, req models.CreateRentReq) (float32, error) {
+	query := `INSERT INTO rents(uuid,car_uuid, user_uuid,phone_number,passport_number,rent_start,rent_end)
+				VALUES ($1,$2,$3,$4,$5, $6, $7) 
+				RETURNING (SELECT price_per_day FROM cars WHERE uuid = $2 LIMIT 1)`
 
 	var carPricePerDay float32
-	err = tx.QueryRowx(query, req.RentUUID, req.CarUUID, req.UserUUID, req.PhoneNumber, req.PassportNumber, req.RentStart, req.RentEnd).Scan(&carPricePerDay)
+	err := tx.QueryRowx(query, req.RentUUID, req.CarUUID, req.UserUUID, req.PhoneNumber, req.PassportNumber, req.RentStart, req.RentEnd).Scan(&carPricePerDay)
 	if err != nil {
-		return 0, tx, &models.Error{
+		return 0, &models.Error{
 			Status: http.StatusInternalServerError,
 			Msg:    fmt.Sprintf("failed to create rent: %v", err),
 		}
 	}
 
-	return carPricePerDay, tx, nil
+	return carPricePerDay, nil
 }
 
 func (r *repository) GetCarsByParams(ctx context.Context, params models.CarParams) ([]models.CarMainInfo, error) {
@@ -282,7 +297,9 @@ func (r *repository) GetAvailableCars(ctx context.Context, period models.Period)
 }
 
 func (r *repository) CheckRent(_ context.Context, rentUUID string) (models.Rent, error) {
-	query := `SELECT rent_price, car_uuid, rent_start, rent_end FROM rents WHERE rent_uuid = $1`
+	query := `SELECT car_uuid, rent_start, rent_end, charges.charge_amount, charges.status FROM rents 
+    			LEFT JOIN charges ON charges.rent_uuid = rents.uuid 
+                WHERE rents.uuid = $1`
 
 	var rent models.Rent
 	err := r.db.Get(&rent, query, rentUUID)

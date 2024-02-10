@@ -112,6 +112,8 @@ func (s *service) GetRentInfo(ctx context.Context, token string) (models.InfoFor
 		return models.InfoForRentRes{}, err
 	}
 
+	info.UUID = uuid
+
 	s.log.Debug("got info for rent", slog.Any("info", info))
 
 	passportNumber, err := decrypt(info.PassportNumber)
@@ -127,6 +129,7 @@ func (s *service) GetRentInfo(ctx context.Context, token string) (models.InfoFor
 	return models.InfoForRentRes{
 		PhoneNumber:    phoneNumber,
 		PassportNumber: passportNumber,
+		UUID:           info.UUID,
 	}, nil
 }
 

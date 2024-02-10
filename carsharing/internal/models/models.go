@@ -5,11 +5,12 @@ import (
 )
 
 type Rent struct {
-	CarUUID   string
-	RentPrice float32
+	CarUUID   string  `db:"car_uuid"`
+	RentPrice float32 `db:"charge_amount"`
+	Status    string  `db:"status"`
 
-	RentStart time.Time
-	RentEnd   time.Time
+	RentStart time.Time `db:"rent_start"`
+	RentEnd   time.Time `db:"rent_end"`
 }
 
 type RentStartData struct {
@@ -33,10 +34,11 @@ type CreateRentReq struct {
 
 	RentStart time.Time
 	RentEnd   time.Time
+	Days      int
 }
 
 type CancelRentInfo struct {
-	ChargeID  string  `db:"charge_id"`
+	ChargeID  string  `db:"uuid"`
 	RentPrice float32 `db:"rent_price"`
 }
 

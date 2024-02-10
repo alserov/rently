@@ -48,6 +48,8 @@ type Carsharing interface {
 	UpdateCarPrice(c *fiber.Ctx) error
 
 	CreateRent(c *fiber.Ctx) error
+	CancelRent(c *fiber.Ctx) error
+	CheckRent(c *fiber.Ctx) error
 
 	GetAvailableCars(c *fiber.Ctx) error
 	GetCarsByParams(c *fiber.Ctx) error
@@ -69,6 +71,38 @@ type carsharing struct {
 	userClient       usr.UserClient
 
 	breaker *grpcbreaker.Breaker
+}
+
+func (csh *carsharing) CheckRent(c *fiber.Ctx) error {
+	rentUUID := c.Params("uuid")
+
+	ctx, cancel := context.WithTimeout(c.Context(), time.Duration(csh.writeTimeout.Seconds()*0.80*float64(time.Second)))
+	defer cancel()
+
+	res, err := grpcbreaker.Execute(ctx, csh.carsharingClient.CheckRent, csh.convert.CheckRentToPb(rentUUID), csh.breaker)
+	if err != nil {
+		handleServiceError(c.Response(), err)
+		return nil
+	}
+
+	handleResponseError(c.Send(marshal(res)))
+	return nil
+}
+
+func (csh *carsharing) CancelRent(c *fiber.Ctx) error {
+	rentUUID := c.Params("uuid")
+
+	ctx, cancel := context.WithTimeout(c.Context(), time.Duration(csh.writeTimeout.Seconds()*0.80*float64(time.Second)))
+	defer cancel()
+
+	_, err := grpcbreaker.Execute(ctx, csh.carsharingClient.CancelRent, csh.convert.CancelRentToPb(rentUUID), csh.breaker)
+	if err != nil {
+		handleServiceError(c.Response(), err)
+		return nil
+	}
+
+	c.Status(http.StatusOK)
+	return nil
 }
 
 func (csh *carsharing) CreateRent(c *fiber.Ctx) error {
